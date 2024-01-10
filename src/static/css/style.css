@@ -1,0 +1,148 @@
+.container {
+    width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+}
+
+#userProfile {
+    border: 1px solid #ccc;
+    padding: 15px;
+    width: 700px;
+    margin: 100px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+
+#buttonsProfile {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.userProfile {
+    border: 1px solid #ccc;
+    padding: 15px;
+    width: 700px;
+    margin: 100px;
+    text-align: left;
+    align-items: center;
+}
+
+#userProfile img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    margin-right: 20px;
+}
+
+.search-header {
+    font-size: 300%;
+    white-space: nowrap;
+}
+
+.search-form {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#book_id {
+    width: 200px;
+    margin: 0 auto;
+}
+
+#city_id {
+    width: 200px;
+    margin: 0 auto;
+}
+
+.btn-dark {
+    margin-top: 5px;
+}
+
+.center {
+    text-align: center;
+}
+
+.main-search-results {
+    text-align: center;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.search-results {
+    text-align: center;
+    margin-top: 20px;
+    border: 2px solid #525252;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.result-info {
+    text-align: center;
+}
+
+
+.result-info img {
+    width: 220px;
+    height: 300px;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.font-bold {
+    font-weight: bold;
+}
+
+.button-container {
+    margin-top: 20px;
+}
+
+.readButton {
+    background-color: #28a745;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 5px;
+}
+
+.books-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.book-info {
+    border: 1px solid #ccc;
+    margin: 10px;
+    padding: 10px;
+    max-width: 300px;
+    text-align: center;
+}
+
+.book-details {
+    margin-top: 10px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.header-buttons {
+    margin-right: 5px;
+}

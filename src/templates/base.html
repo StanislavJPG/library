@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    {% block head %}{% endblock %}
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Головна сторінка</title>
+    <style>
+        body {
+          background-color: #ffffff;
+        }
+    </style>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='/img/favicon.png') }}">
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <a href="http://127.0.0.1:8000/base" class="navbar-brand">
+            <img src="{{ url_for('static', path='/img/logo.png') }}" class="d-inline-block align-top" width="30" height="30" alt="">
+            Your helper 24/7
+        </a>
+        <div class="form-inline my-2 my-lg-0">
+            <a href="http://127.0.0.1:8000/weather" class="navbar-brand mb-0 h1">Погода</a>
+            <a href="http://127.0.0.1:8000/library" class="navbar-brand mb-0 h1">Бібліотека</a>
+            {% if user %}
+                <a href="http://127.0.0.1:8000/profile" class="navbar-brand mb-0 h1">Мій профіль</a>
+            {% else %}
+                <a href="" class="navbar-brand mb-0 h1">Реєстрація</a>
+            {% endif %}
+            <p class="navbar-brand mb-0 h1" id="displayTime"></p>
+
+            <script>
+                function updateTime() {
+                    var timeDisplay = document.getElementById('displayTime');
+                    var currentDate = new Date();
+                    var formattedTime = currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit'});
+                    timeDisplay.textContent = formattedTime;
+                }
+
+                updateTime();
+
+                setInterval(updateTime, 1000);
+            </script>
+        </div>
+    </nav>
+</body>
+{% block content %}
+{% endblock %}
+</html>

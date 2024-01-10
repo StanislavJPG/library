@@ -1,0 +1,21 @@
+0000000000000000000000000000000000000000 a0dd5c386bf20b2ba4499fad4dd6657ac503765c StanislavJPG <samper.stas@gmail.com> 1703803630 +0200	commit (initial): first steps
+a0dd5c386bf20b2ba4499fad4dd6657ac503765c 0000000000000000000000000000000000000000 StanislavJPG <samper.stas@gmail.com> 1703803636 +0200	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 a0dd5c386bf20b2ba4499fad4dd6657ac503765c StanislavJPG <samper.stas@gmail.com> 1703803636 +0200	Branch: renamed refs/heads/master to refs/heads/main
+a0dd5c386bf20b2ba4499fad4dd6657ac503765c f3cc311b775d90ec7ddf5df95c663d8bfc0fdb7f StanislavJPG <samper.stas@gmail.com> 1703803934 +0200	commit: little bit updates
+f3cc311b775d90ec7ddf5df95c663d8bfc0fdb7f 109c38b55ac3d74e2965269ae7c576879cd1eef8 StanislavJPG <samper.stas@gmail.com> 1703804046 +0200	commit (merge): little updates
+109c38b55ac3d74e2965269ae7c576879cd1eef8 25076ec2e12491e9a64bcd04fc767510236e9c95 StanislavJPG <samper.stas@gmail.com> 1703804147 +0200	commit: ignore .env
+25076ec2e12491e9a64bcd04fc767510236e9c95 95d4b7b453d6852bb6a116ba56db2b4afcec8b30 StanislavJPG <samper.stas@gmail.com> 1703928811 +0200	commit: updates
+95d4b7b453d6852bb6a116ba56db2b4afcec8b30 e3aad376e883064e1f7d99e4ec3a31b3eef2ff64 StanislavJPG <samper.stas@gmail.com> 1704025166 +0200	commit: up
+e3aad376e883064e1f7d99e4ec3a31b3eef2ff64 6737d279c670bdc11d3b410ef052fd79994ca67f StanislavJPG <samper.stas@gmail.com> 1704158295 +0200	commit: book search updates
+6737d279c670bdc11d3b410ef052fd79994ca67f ee4e85839064b362c6e17a79ff74967b6d856243 StanislavJPG <samper.stas@gmail.com> 1704754636 +0200	commit: many updates
+ee4e85839064b362c6e17a79ff74967b6d856243 961f7449fd2de4b061dd60112fa8d7a4e1a6595a StanislavJPG <samper.stas@gmail.com> 1704754742 +0200	commit: updates
+961f7449fd2de4b061dd60112fa8d7a4e1a6595a 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704845516 +0200	commit: change in frontend+auth
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 1bde7d85b842c379ebc83952ef2c0855cb133bab StanislavJPG <samper.stas@gmail.com> 1704845546 +0200	pull --rebase (start): checkout 1bde7d85b842c379ebc83952ef2c0855cb133bab
+1bde7d85b842c379ebc83952ef2c0855cb133bab 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704845834 +0200	reset: moving to main
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704845935 +0200	checkout: moving from 0f31dcece104dae998e3aa8d2958c3c913d8fb1b to main
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 0000000000000000000000000000000000000000 StanislavJPG <samper.stas@gmail.com> 1704845955 +0200	Branch: renamed refs/heads/main to refs/heads/main
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704845955 +0200	Branch: renamed refs/heads/main to refs/heads/main
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704846108 +0200	rebase (finish): refs/heads/main onto 1bde7d85b842c379ebc83952ef2c0855cb133bab
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704846108 +0200	rebase (finish): returning to refs/heads/main
+0f31dcece104dae998e3aa8d2958c3c913d8fb1b 1bde7d85b842c379ebc83952ef2c0855cb133bab StanislavJPG <samper.stas@gmail.com> 1704846137 +0200	pull origin main (start): checkout 1bde7d85b842c379ebc83952ef2c0855cb133bab
+1bde7d85b842c379ebc83952ef2c0855cb133bab 0f31dcece104dae998e3aa8d2958c3c913d8fb1b StanislavJPG <samper.stas@gmail.com> 1704846154 +0200	rebase (abort): returning to refs/heads/main

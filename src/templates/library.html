@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+    <title>Бібліотека</title>
+    <script src="/static/javascript/book_url.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-header">
+        <h1>Пошук літератури українською!</h1>
+    </div>
+
+    <div id="outPop">
+        <div class="search-form">
+            <input type="text" class="form-control" id="book_id" placeholder="Введіть книжку"/>
+            <div class="center">
+                <button class="btn btn-dark" onclick="SimpleSearchForLiterature()">Пошук</button>
+            </div>
+        </div>
+
+        {% if book %}
+        <div class="main-search-results">
+            <p class="your_search">Ви ввели: {{ user_title }} </p>
+            <p class="your_result">Результат: </p>
+                <div class="search-results">
+                    <div class="result-info">
+                        <font size="+3" style="font-weight: bold;">«{{ author_result[1] }}»</font>
+                        <br>
+                        {{ book[1] }}
+                        <br>
+                        <img align="justify" src="{{ author_result[0] }}" alt="Book hardcover" style="width:230px;height:300px;">
+                </div>
+                {% if author_result[3] is not none %}
+                    <b>
+                        <a href="mailto:samper.stas@gmail.com" style="color: red;" class="text-base font-bold">
+                            {{ author_result[3] }}
+                        </a>
+                    </b>
+                {% endif %}
+
+                <p class="text-base font-bold">
+                    Виберіть результат, який Вам більше підходить, та збережіть вибір до вашого профілю:
+                </p>
+
+                <p style="color: red;" class="text-base font-bold">
+                    Збережена книга залишиться в вашому профілі, де Ви в будь-який момент зможете її прочитати!
+                </p>
+
+                <div class="button-container">
+                    <b class="btn btn-dark readButton">Читати книгу «{{ book[0] }}»</b>
+                </div>
+                    <script src="/static/javascript/save_db_script.js"></script>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
