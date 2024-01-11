@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 
 from fastapi_users import schemas
-from pydantic import EmailStr
+from pydantic import EmailStr, Field
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -16,8 +16,8 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 
 class UserCreate(schemas.BaseUserCreate):
     email: EmailStr
-    username: str
-    password: str
+    username: str = Field(min_length=3)
+    password: str = Field(min_length=7)
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     is_verified: Optional[bool] = False

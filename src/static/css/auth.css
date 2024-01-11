@@ -1,0 +1,21 @@
+.container-auth {
+    border: 1px solid #ccc;
+    width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 30px;
+    margin-top: 230px;
+}
+
+.search-header-auth {
+    font-size: 300%;
+    white-space: nowrap;
+}
+
+.form-input {
+    width: 300px;
+    margin: 0 auto;
+    margin-top: 20px;
+    padding: 10px;
+}
+

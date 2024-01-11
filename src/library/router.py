@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Query, Depends
 
 from src.auth.base_config import current_user
 from src.base.router import templates
+from src.database import async_session_maker
 from src.library.service import modified_take_book, get_full_info, save_book_database, get_urls_info, \
     get_title_info, specific_search
 

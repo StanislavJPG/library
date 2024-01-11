@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import select
+import base64
+
+from fastapi import APIRouter, Depends, UploadFile, File
+from sqlalchemy import select, update
 
 from src.auth.base_config import current_active_user
+from src.auth.models import User
 from src.database import async_session_maker
 from src.library.models import Book
 
@@ -24,3 +27,15 @@ async def view_books(book: str = None, user=Depends(current_active_user)):
                 return stmt
         except IndexError:
             return []
+
+
+@test_profile.patch('/image')
+async def get_user_image(image: UploadFile = File(...), user=Depends(current_active_user)):
+    image_content = await image.read()
+    image_url = f"data:image/{image.content_type.split('/')[1]};base64,{base64.b64encode(image_content).decode()}"
+
+    async with async_session_maker() as session:
+        stmt = update(User).where(User.id == str(user.id)).values(profile_image=image_url)
+        await session.execute(stmt)
+        await session.commit()
+        return {'Success': 200}

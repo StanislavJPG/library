@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link href="{{ url_for('static', path='/css/auth.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html">
+    <title>Вихід з профілю</title>
+{% endblock %}
+
+{% block content %}
+    <div class="rounded container-auth">
+        <div class="search-header-auth">
+            <h1>Ви бажаєте вийти з профілю?</h1>
+        </div>
+        <button id="logOut" class="btn btn-dark">Так, вийти з профілю</button>
+        <script src="/static/javascript/auth.js"></script>
+    </div>
+{% endblock %}

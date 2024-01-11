@@ -1,16 +1,18 @@
 from pathlib import Path
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
-from src.auth.base_config import fastapi_users, auth_backend, current_user, current_active_user
+from src.auth.base_config import fastapi_users, auth_backend
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
-from src.database import User
 from src.library.service import test
 from src.profile.service import test_profile
+
 from src.weather.router import router as router_weather
 from src.base.router import router as router_base
 from src.library.router import router as router_library
 from src.profile.router import router as router_profile
+from src.auth.router import router as router_auth
+
 from fastapi.staticfiles import StaticFiles
 
 
@@ -24,6 +26,7 @@ app.include_router(router_library)
 app.include_router(router_profile)
 app.include_router(test)
 app.include_router(test_profile)
+app.include_router(router_auth)
 
 
 app.mount(
@@ -33,7 +36,7 @@ app.mount(
 )
 
 app.include_router(
-    fastapi_users.get_auth_router(auth_backend, requires_verification=True),
+    fastapi_users.get_auth_router(auth_backend, requires_verification=False),
     prefix="/auth/jwt",
     tags=["auth"],
 )
@@ -61,4 +64,3 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
-

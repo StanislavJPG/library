@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
     <title>Бібліотека</title>
     <script src="/static/javascript/book_url.js"></script>
 {% endblock %}
@@ -30,7 +29,9 @@
                         <br>
                         {{ book[1] }}
                         <br>
-                        <img align="justify" src="{{ author_result[0] }}" alt="Book hardcover" style="width:230px;height:300px;">
+                        <div class="image_library">
+                            <img src="{{ author_result[0] }}" id="book-hardcover" alt="Book hardcover">
+                        </div>
                 </div>
                 {% if author_result[3] is not none %}
                     <b>

@@ -24,8 +24,9 @@
             <a href="http://127.0.0.1:8000/library" class="navbar-brand mb-0 h1">Бібліотека</a>
             {% if user %}
                 <a href="http://127.0.0.1:8000/profile" class="navbar-brand mb-0 h1">Мій профіль</a>
+                <a href="http://127.0.0.1:8000/logout" class="navbar-brand mb-0 h1">Вихід</a>
             {% else %}
-                <a href="" class="navbar-brand mb-0 h1">Реєстрація</a>
+                <a href="http://127.0.0.1:8000/login" class="navbar-brand mb-0 h1">Авторизація</a>
             {% endif %}
             <p class="navbar-brand mb-0 h1" id="displayTime"></p>
 

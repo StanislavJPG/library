@@ -14,14 +14,14 @@ test = APIRouter(
 )
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; Win64; x64) '
-                  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+    'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/120.0.0.0 Safari/537.36'}
 
 
 async def specific_search(book: str):
     async with httpx.AsyncClient() as client:
         url_wiki = 'https://www.google.com/search?q=' + f'книга {book} site:uk.wikipedia.org'
-
         response_wiki = await client.get(url_wiki, headers=headers)
         bs_wiki = BS(response_wiki.text, 'lxml')
         data_wiki = bs_wiki.find_all('div', class_='MjjYud')
@@ -29,7 +29,7 @@ async def specific_search(book: str):
         for i, wiki_el in enumerate(data_wiki):
             if i == 0:
                 full_info = wiki_el.find('a').get('href')
-                page = await client.get(full_info)
+                page = await client.get(full_info, headers=headers)
 
         soup = BS(page.text, 'html.parser')
 
@@ -38,7 +38,7 @@ async def specific_search(book: str):
 
         return title, description.text
 
-@test.get('/list/{book}')
+
 async def modified_take_book(book: str):
     async with httpx.AsyncClient() as client:
 
@@ -80,7 +80,7 @@ async def modified_take_book(book: str):
 
         for i, wiki_el in enumerate(scraper_result[-1]):
             if i == 0:
-                full_info = wiki_el.find('a').get('href')
+                full_info = wiki_el.find('a').get('href')   # this is full info from wiki
 
         return [sorted(list(lst_book), reverse=True), full_info]
 
@@ -96,14 +96,12 @@ async def get_full_info(book: str):
     urls = await modified_take_book(book)
     page = await get_page(urls[1])
 
-    raw_events_wiki_table = page.find_all('table', class_='infobox')
-
     title = page.find('span', class_='mw-page-title-main').text
     description = page.find('p')
+    image_raw_url = page.find('img', alt='', class_='mw-file-element')
 
     try:
-        image = 'https:' + [event.find('img', alt='', class_='mw-file-element').get('src')
-                            for event in raw_events_wiki_table][0]
+        image = 'https:' + str(image_raw_url.get('src'))
     except (AttributeError, IndexError):
         image_default = DEFAULT_IMAGE
         attention = f'Не знайшли нічого? Напишіть нам!'
@@ -111,7 +109,6 @@ async def get_full_info(book: str):
     return image, title, description.text, None
 
 
-@test.get('/list/{book}')
 async def get_urls_info(book: str):
     urls = await modified_take_book(book)
 
@@ -139,17 +136,15 @@ async def get_image_info(book: str):
     page = await get_page(urls[1])
 
     attention = f'Не знайшли нічого? Напишіть нам!'
-    raw_events_wiki_table = page.find_all('table', class_='infobox')
+    image_raw_url = page.find('img', alt='', class_='mw-file-element')
     try:
-        image = 'https:' + [event.find('img', alt='', class_='mw-file-element').get('src')
-                            for event in raw_events_wiki_table][0]
+        image = 'https:' + str(image_raw_url.get('src'))
     except (AttributeError, IndexError):
         image_default = DEFAULT_IMAGE
         return image_default, attention
     return image, attention
 
 
-@test.post('/test/s')
 async def save_book_database(book: str, book_number: int, user=Depends(current_user)):
     title = await get_title_info(book)
     image = await get_image_info(book)

@@ -16,6 +16,7 @@ Base: DeclarativeMeta = declarative_base()
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     username: Mapped[str] = mapped_column(String)
+    profile_image: Mapped[str] = mapped_column(String)
 
 
 engine = create_async_engine(DATABASE_URL)

@@ -29,13 +29,6 @@
     align-items: center;
 }
 
-#userProfile img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin-bottom: 10px;
-    margin-right: 20px;
-}
 
 .search-header {
     font-size: 300%;
@@ -86,9 +79,16 @@
 }
 
 
-.result-info img {
-    width: 220px;
-    height: 300px;
+.image_library {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align: justify;
+    text-align: center;
+}
+
+#book-hardcover {
+    width: 230px;
+    height: 330px;
 }
 
 .text-base {
@@ -145,4 +145,47 @@
 
 .header-buttons {
     margin-right: 5px;
+}
+
+#imageUpload
+{
+    display: none;
+}
+
+.profileImage {
+    width: 170px;
+    height: 130px;
+    border-radius: 50%;
+}
+
+.profileImageDefaultBtn {
+    width: 27px;
+    height: 26px;
+}
+
+.photo{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    margin-right: 10px;
+    margin-top: 15px;
+}
+
+#file{
+    display: none;
+}
+
+#upload-btn{
+    position: absolute;
+    height: 40px;
+    width: 40px;
+    padding: 6px 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #FFF;
+    transform: translateX(-90%);
+    margin-top: 85px;
+    background-color: rgb(173, 172, 172, 0.801);
+    box-shadow: 2px 4px 4px rgs(0, 0, 0, 0.644);
 }
