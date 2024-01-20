@@ -1,5 +1,3 @@
-import asyncio
-
 import httpx
 from bs4 import BeautifulSoup as BS
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,7 +12,6 @@ from fastapi import status
 test = APIRouter(
     prefix='/test'
 )
-
 
 headers = {
     'User-Agent':
@@ -42,13 +39,12 @@ async def specific_search(book: str):
     return title, description.text
 
 
-@test.get('/s/{book}')
 async def modified_book_getter(book: str):
     async with httpx.AsyncClient() as client:
 
         info_from_wiki = await specific_search(book)   # take full info about book from wiki, to extend search result
 
-        url_first_query = 'https://www.google.com/search?q=' + f'читати {info_from_wiki[0]} книга filetype:pdf'
+        url_first_query = 'https://www.google.com/search?q=' + f'читати {book} book filetype:pdf book'
         url_second_query = 'https://www.google.com/search?q=' + f'читати {info_from_wiki[0]} book filetype:pdf book'
 
         url_wiki_query = 'https://www.google.com/search?q=' + f'книга {info_from_wiki[0]} site:uk.wikipedia.org'
@@ -87,18 +83,10 @@ async def modified_book_getter(book: str):
             if i == 0:
                 full_info = wiki_el.find('a').get('href')  # this is full info from wiki
 
-        # book_manager.add_url_to_set(*lst_book)
-
         return [sorted(list(lst_book), reverse=True), full_info]
 
 
-# @test.get('/test/keep')
-# def books_in_pdf_keeper():
-#     book_manager = get_book_manager()
-#     return list(book_manager.lst_books)
-
-
-async def get_page(url: modified_book_getter) -> BS:
+async def get_page(url) -> BS:
     async with httpx.AsyncClient() as client:
         page = await client.get(url)
         soup = BS(page.content, 'html.parser')
@@ -119,63 +107,38 @@ async def get_full_info(book: str):
         image_default = DEFAULT_IMAGE
         attention = f'Не знайшли нічого? Напишіть нам!'
         return image_default, title, description.text, attention
-    return image, title, description.text, None
+    return image, title, description.text, None, urls[:-1][0]
 
 
-async def get_urls_info(book: str):
-    urls = await modified_book_getter(book)
-
-    return urls[:-1][0]
-
-
-async def get_title_info(book: str):
-    urls = await modified_book_getter(book)
-    page = await get_page(urls[1])
-
-    title = page.find('span', class_='mw-page-title-main').text
-    return title
-
-
-async def get_description_info(book: str):
-    urls = await modified_book_getter(book)
-    page = await get_page(urls[1])
-
-    description = page.find('p')
-    return description.text
+# async def get_image_info(book: str):
+#     urls = await modified_book_getter(book)
+#     page = await get_page(urls[1])
+#
+#     attention = f'Не знайшли нічого? Напишіть нам!'
+#     image_raw_url = page.find('img', alt='', class_='mw-file-element')
+#     try:
+#         image = 'https:' + str(image_raw_url.get('src'))
+#     except (AttributeError, IndexError):
+#         image_default = DEFAULT_IMAGE
+#         return image_default, attention
+#     return image, attention
 
 
-async def get_image_info(book: str):
-    urls = await modified_book_getter(book)
-    page = await get_page(urls[1])
+async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
+    info_book = await get_full_info(book)
 
-    attention = f'Не знайшли нічого? Напишіть нам!'
-    image_raw_url = page.find('img', alt='', class_='mw-file-element')
-    try:
-        image = 'https:' + str(image_raw_url.get('src'))
-    except (AttributeError, IndexError):
-        image_default = DEFAULT_IMAGE
-        return image_default, attention
-    return image, attention
-
-
-async def save_book_database(book: str, book_number: int, user=Depends(current_optional_user)):
-    title = await get_title_info(book)
-    image = await get_image_info(book)
-    description = await get_description_info(book)
-    urls = await get_urls_info(book)
-
-    url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(urls)}'
+    url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(info_book[1])}'
 
     async with async_session_maker() as session:
         select_book = select(Book).where(Book.owner_id == str(user.id))
         current_user_book = await session.scalars(select_book)
-        result = current_user_book.all()
+        all_user_books = current_user_book.all()
 
-        if url not in [x.as_dict()['url'] for x in result]:
+        if url not in [x.as_dict()['url'] for x in all_user_books]:
             stmt = insert(Book).values(
-                title=f'№{book_number}. {title}',
-                image=image[0],
-                description=description,
+                title=f'№{book_number}. {info_book[1]}',
+                image=info_book[0],
+                description=info_book[2],
                 url=url,
                 owner_id=user.id
             )

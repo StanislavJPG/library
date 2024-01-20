@@ -2,8 +2,7 @@ from fastapi import APIRouter, Request, Query, Depends
 
 from src.auth.base_config import current_optional_user
 from src.base.router import templates
-from src.library.service import get_full_info, save_book_database, get_urls_info, \
-    get_title_info, specific_search
+from src.library.service import get_full_info, save_book_to_database, specific_search
 
 router = APIRouter(
     tags=['Library_page']
@@ -36,7 +35,7 @@ async def library_search(request: Request, literature: str,
 async def save_book_page(request: Request, literature: str,
                          num: int = Query(..., description='Number'),
                          user=Depends(current_optional_user)):
-    database = await save_book_database(literature, num, user)
+    database = await save_book_to_database(literature, num, user)
 
     return templates.TemplateResponse(
         'library.html',
@@ -49,12 +48,11 @@ async def save_book_page(request: Request, literature: str,
 async def get_read_page(request: Request, literature: str,
                         num: int = Query(..., description='Number', gt=0),
                         user=Depends(current_optional_user)):
-    url = await get_urls_info(literature)
-    title = await get_title_info(literature)
+    info_book = await get_full_info(literature)
 
     return templates.TemplateResponse(
         'reader.html',
         {'request': request,
-         'book': url[abs(num) % len(url)], 'title': [title, abs(num)],
+         'book': info_book[4][abs(num) % len(info_book[4])], 'title': [info_book[1], abs(num)],
          'num': num, 'user': user}
     )
