@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='/img/favicon.png') }}">
   <link rel="shortcut icon" href="#">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +18,9 @@
 
   <button id="Back" class="btn btn-light btn-sm" onclick="incrementNum_back()">🢀 Попередній варіант книги</button>
   <button class="btn btn-success btn-sm" onclick="toggleFullscreen()">Повноекранний режим</button>
-  <button data-book-index="{{ num }}" class="btn btn-primary btn-sm saveButton">Зберегти цю книгу до мого профілю</button>
+  {% if user %}
+    <button data-book-index="{{ num }}" class="btn btn-primary btn-sm saveButton">Зберегти цю книгу до мого профілю</button>
+  {% endif %}
   <script src="/static/javascript/save_db_script.js"></script>
   <button id="Next" class="btn btn-light btn-sm" onclick="incrementNum()">Наступний варіант книги 🢂</button>
   <script src="/static/javascript/book_switcher.js"></script>

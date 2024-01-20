@@ -42,7 +42,7 @@ function loginUser(email, password) {
           document.getElementById("error-message").innerText = "Незрозумілий синтаксис"
       }
       else if (response.status === 400){
-          document.getElementById("error-message").innerText = "Користувач не зареєстрований"
+          document.getElementById("error-message").innerText = "Перевірте введені дані"
       }
       else
           window.location.href = '/base';
@@ -80,8 +80,7 @@ function registerUser(email, password, username) {
             } else if (response.status === 400) {
                 document.getElementById("error-message").innerText = "Такий користувач вже зареєстрований";
             } else {
-                window.location.href = '/base';
-                alert('Успішна реєстрація. Підтвердіть пошту, перейшовши за посиланням.');
+                loginUser(email, password);
             }
         })
         .catch(error => {

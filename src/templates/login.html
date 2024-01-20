@@ -4,20 +4,28 @@
 <link href="{{ url_for('static', path='/css/auth.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html"
       xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
     <title>Вхід до профілю</title>
+    <script src="/static/javascript/auth.js"></script>
+
 {% endblock %}
 
 {% block content %}
-    <div class="rounded container-auth">
-        <div class="search-header-auth">
-            <h1>Вхід до профілю</h1>
+    {% if not user %}
+        <div class="rounded container-auth">
+            <div class="search-header-auth">
+                <h1>Вхід до профілю</h1>
+            </div>
+            <form class="form-input">
+                <input type="email" minlength="1" id="email" class="form-control" style="margin-bottom: 10px;" placeholder="Пошта" required>
+                <input type="password" minlength="1" id="password" class="form-control" placeholder="Пароль" required>
+                <div><b style="color: red;" id="error-message"></b></div>
+                <button type="button" onclick="loginUser(document.getElementById('email').value, document.getElementById('password').value)" style="margin-top: 20px;" class="btn btn-dark">Вхід</button>
+            </form>
+            <div style="margin-top: 25px;">Ще не маєте профіль?</div><button onclick="location.href='http://127.0.0.1:8000/registration'" style="margin-top: 10px;" class="btn btn-dark">Зареєструватись</button>
         </div>
-        <form class="form-input">
-            <input type="email" minlength="1" id="email" class="form-control" style="margin-bottom: 10px;" placeholder="Пошта" required>
-            <input type="password" minlength="1" id="password" class="form-control" placeholder="Пароль" required>
-            <div><b style="color: red;" id="error-message"></b></div>
-            <button type="button" onclick="loginUser(document.getElementById('email').value, document.getElementById('password').value)" style="margin-top: 20px;" class="btn btn-dark">Вхід</button>
-        </form>
-        <script src="/static/javascript/auth.js"></script>
-        <div style="margin-top: 25px;">Ще не маєте профіль?</div><button onclick="location.href='http://127.0.0.1:8000/registration'" style="margin-top: 10px;" class="btn btn-dark">Зареєструватись</button>
-    </div>
+    {% else %}
+        <div style="margin-top: 350px; text-align: center; font-size: 40px;">
+            <b style="font-style: oblique;">Оп-ля... <img src="/static/img/error.png" style="width: 170px;"></b>
+            <p style="font-weight: bold; font-style: oblique;">403...</p>
+        </div>
+    {% endif %}
 {% endblock %}

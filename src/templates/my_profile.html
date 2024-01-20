@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <title>Профіль</title>
+<title xmlns="http://www.w3.org/1999/html">Профіль</title>
     <script src=""></script>
 {% endblock %}
 
@@ -22,14 +22,30 @@
         <h1>{{ user.username }}</h1>
         <p><strong>Пошта:</strong> {{ user.email }}</p>
         {% if user.is_verified %}
-        <p><strong>Пошта підтверджена:</strong> Так</p>
+        <strong>Пошта підтверджена</strong>
         {% else %}
-        <button style="font-weight:bold;" class="btn btn-dark"> Підтвердити пошту</button>
+        <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
+        <div id="popupContainer" class="popup-container">
+            <div class="popup-content">
+                <span class="close" id="closePopup">&times;</span>
+                <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
+                <div style="text-align: center;">
+                    <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти"></input>
+                    <div style="margin-top: 10px;">
+                    <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
+                            onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
+                    </div>
+                    <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
+                    <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
+                </div>
+            </div>
+        </div>
+
         {% endif %}
     </div>
 </div>
 
-
+<div class="container_info">
     <div class="userProfile rounded">
         <div class="search-form">
             <input type="text" class="form-control" id="book_id" placeholder="Введіть книжку"/>
@@ -40,12 +56,14 @@
         <div class="books-container">
             {% for book in books %}
                 <div class="book-info rounded">
-                    <img src="{{ book['image'] }}" alt="Book hardcover" style="width:230px;height:300px;">
+                    <div>
+                        <img src="{{ book['image'] }}" alt="Book hardcover" style="width:220px;height:310px;">
+                    </div>
                     <div class="book-details">
                         <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
                         <p><strong>{{ book['description'] }}</strong></p>
-                        <button class="btn btn-dark" id="buttonsProfile" onclick="location.href='{{ book['url'] }}'" type="button">Читати «{{ book['title'] }}»</button>
-                        <button onclick="deleteBook('{{ book['title'] }}')" class="btn btn-dark">Видалити книгу з мого профілю</button>
+                        <button class="btn btn-dark" id="buttonsProfile" onclick=" window.open('{{ book['url'] }}','_blank')" type="button">Читати «{{ book['title'] }}»</button>
+                        <button onclick='deleteBook("{{ book["title"] }}")' class="btn btn-dark">Видалити книгу з мого профілю</button>
                         <script src="/static/javascript/index.js"></script>
                     </div>
                 </div>
@@ -53,4 +71,18 @@
         </div>
     </div>
 
+    <div class="userProfile rounded">
+        <div class="search-form">
+            <div class="center">
+                <h1>Ваш рейтинг книг:</h1>
+            </div>
+        </div>
+        <div class="books-container">
+            <div class="book-info rounded">
+                <div class="book-details">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

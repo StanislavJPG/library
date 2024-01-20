@@ -4,7 +4,7 @@ from googletrans import Translator
 import httpx
 from fastapi import APIRouter, Request, Depends
 
-from src.auth.base_config import current_user
+from src.auth.base_config import current_optional_user
 from src.config import URL_WEATHER_API, APPID
 from src.base.router import templates
 
@@ -34,7 +34,7 @@ async def weather(city):
 
 @router.get('/weather')
 def get_weather_page(request: Request,
-                           user=Depends(current_user)):
+                           user=Depends(current_optional_user)):
     return templates.TemplateResponse(
         'weather.html',
         {'request': request, 'user': user}
@@ -43,7 +43,7 @@ def get_weather_page(request: Request,
 
 @router.get('/weather/{city}')
 async def get_weather_operation(request: Request, city: str,
-                           user=Depends(current_user)):
+                           user=Depends(current_optional_user)):
     task = asyncio.create_task(weather(city))
 
     result = await asyncio.gather(task)

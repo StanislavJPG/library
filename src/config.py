@@ -13,3 +13,6 @@ DEFAULT_IMAGE = os.environ.get('DEFAULT_IMAGE')
 
 URL_WEATHER_API = os.environ.get('URL_WEATHER_API')
 APPID = os.environ.get('APPID')
+
+MAIL_NAME = os.environ.get('MAIL_NAME')
+MAIL_PASS = os.environ.get('MAIL_PASS')

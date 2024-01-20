@@ -5,7 +5,7 @@ document.querySelectorAll('.saveButton').forEach(button => {
         const bookIndex = button.getAttribute('data-book-index');
 
 
-        let isSave = confirm(`Ви бажаєте зберегти книгу №${Number(bookIndex) + 1}?`);
+        let isSave = confirm('Ви бажаєте зберегти цю книгу до Вашого профілю?');
         if (isSave) {
             alert('Зачекайте, книга зберігається до вашого профілю...');
             fetch(`/library/save_book/${literatureValue}?num=${bookIndex}`, {
@@ -45,7 +45,7 @@ const booksValue = window.location.pathname.split('/').pop();
 document.querySelectorAll('.readButton').forEach(button => {
     button.addEventListener('click', () => {
 
-        const url = `/read/${booksValue}?num=0`;
+        const url = `/read/${booksValue}?num=1`;
         window.open(url, '_blank');
     });
 });

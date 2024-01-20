@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy import select, delete
 from fastapi import status
 
-from src.auth.base_config import current_active_user, current_user
+from src.auth.base_config import current_user, current_optional_user
 from src.base.router import templates
 from src.database import async_session_maker
 from src.library.models import Book
@@ -15,8 +15,7 @@ router = APIRouter(
 
 @router.get('/profile')
 async def get_profile_page(request: Request, books=Depends(view_books),
-                           user=Depends(current_active_user)):
-
+                           user=Depends(current_user)):
     return templates.TemplateResponse(
         'my_profile.html',
         {'request': request, 'books': books, 'user': user}
@@ -24,7 +23,7 @@ async def get_profile_page(request: Request, books=Depends(view_books),
 
 
 @router.delete('/books/{book_title}')
-async def delete_book_from_profile(book_title: str, user=Depends(current_user)):
+async def delete_book_from_profile(book_title: str, user=Depends(current_optional_user)):
     async with async_session_maker() as session:
         try:
             select_book = select(Book).where(Book.owner_id == str(user.id))

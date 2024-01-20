@@ -3,7 +3,7 @@ import base64
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy import select, update
 
-from src.auth.base_config import current_active_user
+from src.auth.base_config import current_user
 from src.auth.models import User
 from src.database import async_session_maker
 from src.library.models import Book
@@ -13,7 +13,7 @@ test_profile = APIRouter(
 )
 
 
-async def view_books(book: str = None, user=Depends(current_active_user)):
+async def view_books(book: str = None, user=Depends(current_user)):
     async with async_session_maker() as session:
         select_book = select(Book).where(Book.owner_id == str(user.id))
         current_user_book = await session.scalars(select_book)
@@ -29,8 +29,7 @@ async def view_books(book: str = None, user=Depends(current_active_user)):
             return []
 
 
-@test_profile.patch('/image')
-async def get_user_image(image: UploadFile = File(...), user=Depends(current_active_user)):
+async def get_user_image(image: UploadFile = File(...), user=Depends(current_user)):
     image_content = await image.read()
     image_url = f"data:image/{image.content_type.split('/')[1]};base64,{base64.b64encode(image_content).decode()}"
 
