@@ -13,7 +13,8 @@ class Book(Base):
     title = Column(String)
     image = Column(String)
     description = Column(String)
-    url = Column(String, unique=True)
+    url = Column(String)
+    url_orig = Column(String)
     owner_id = Column(UUID, ForeignKey(User.id))
 
     owner = relationship(User, back_populates="items")

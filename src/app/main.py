@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from fastapi import FastAPI
 
 from src.auth.base_config import fastapi_users, auth_backend

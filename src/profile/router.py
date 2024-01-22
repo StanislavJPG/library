@@ -29,6 +29,7 @@ async def delete_book_from_profile(book_title: str, user=Depends(current_optiona
             select_book = select(Book).where(Book.owner_id == str(user.id))
             curr_user = await session.scalars(select_book)
             result = curr_user.all()
+
             if book_title in [x.as_dict()['title'] for x in result]:
                 stmt = delete(Book).where(book_title == Book.title)
                 await session.execute(stmt)

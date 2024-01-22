@@ -1,6 +1,8 @@
+from typing import Annotated, Union
+
 import httpx
 from bs4 import BeautifulSoup as BS
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy import insert, select
 
 from src.auth.base_config import current_optional_user
@@ -9,19 +11,23 @@ from src.database import async_session_maker
 from src.library.models import Book
 from fastapi import status
 
+
 test = APIRouter(
     prefix='/test'
 )
 
-headers = {
-    'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    ' (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
 
 
+search_pattern = 'https://www.google.com/search?q='
+
+
+@test.get('/test/header')
 async def specific_search(book: str):
     async with httpx.AsyncClient() as client:
-        url_wiki = 'https://www.google.com/search?q=' + f'книга {book} site:uk.wikipedia.org'
+        url_wiki = search_pattern + f'книга {book} site:uk.wikipedia.org'
         response_wiki = await client.get(url_wiki, headers=headers)
         bs_wiki = BS(response_wiki.text, 'lxml')
         data_wiki = bs_wiki.find_all('div', class_='MjjYud')
@@ -35,7 +41,6 @@ async def specific_search(book: str):
 
     title = soup.find('span', class_='mw-page-title-main').text
     description = soup.find('p')
-
     return title, description.text
 
 
@@ -44,10 +49,9 @@ async def modified_book_getter(book: str):
 
         info_from_wiki = await specific_search(book)   # take full info about book from wiki, to extend search result
 
-        url_first_query = 'https://www.google.com/search?q=' + f'читати {book} book filetype:pdf book'
-        url_second_query = 'https://www.google.com/search?q=' + f'читати {info_from_wiki[0]} book filetype:pdf book'
-
-        url_wiki_query = 'https://www.google.com/search?q=' + f'книга {info_from_wiki[0]} site:uk.wikipedia.org'
+        url_first_query = search_pattern + f'читати {book} book filetype:pdf book'
+        url_second_query = search_pattern + f'читати {info_from_wiki[0]} book filetype:pdf book'
+        url_wiki_query = search_pattern + f'книга {info_from_wiki[0]} site:uk.wikipedia.org'
 
         urls_queries_lst = [url_first_query, url_second_query, url_wiki_query]
         scraper_result = []
@@ -110,35 +114,23 @@ async def get_full_info(book: str):
     return image, title, description.text, None, urls[:-1][0]
 
 
-# async def get_image_info(book: str):
-#     urls = await modified_book_getter(book)
-#     page = await get_page(urls[1])
-#
-#     attention = f'Не знайшли нічого? Напишіть нам!'
-#     image_raw_url = page.find('img', alt='', class_='mw-file-element')
-#     try:
-#         image = 'https:' + str(image_raw_url.get('src'))
-#     except (AttributeError, IndexError):
-#         image_default = DEFAULT_IMAGE
-#         return image_default, attention
-#     return image, attention
-
-
 async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
     info_book = await get_full_info(book)
 
-    url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(info_book[1])}'
+    url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(info_book[4])}'
+    url_orig = info_book[4][abs(book_number) % len(info_book[4])]
 
     async with async_session_maker() as session:
         select_book = select(Book).where(Book.owner_id == str(user.id))
         current_user_book = await session.scalars(select_book)
         all_user_books = current_user_book.all()
 
-        if url not in [x.as_dict()['url'] for x in all_user_books]:
+        if info_book[4][abs(book_number) % len(info_book[4])] not in [x.as_dict()['url_orig'] for x in all_user_books]:
             stmt = insert(Book).values(
                 title=f'№{book_number}. {info_book[1]}',
                 image=info_book[0],
                 description=info_book[2],
+                url_orig=url_orig,
                 url=url,
                 owner_id=user.id
             )
@@ -148,3 +140,13 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
 
         raise HTTPException(status_code=409,
                             detail=status.HTTP_409_CONFLICT)
+
+
+# @test.get('/test/get_book_url')
+async def get_book_url_by_user(user_id: Union[str, None] = None):
+    async with async_session_maker() as session:
+        stmt = select(Book).where(Book.owner_id == user_id)
+        current_user_book = await session.scalars(stmt)
+        all_user_books = current_user_book.all()
+        return all_user_books
+

@@ -3,7 +3,7 @@ import base64
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy import select, update
 
-from src.auth.base_config import current_user
+from src.auth.base_config import current_user, current_optional_user
 from src.auth.models import User
 from src.database import async_session_maker
 from src.library.models import Book
@@ -13,11 +13,13 @@ test_profile = APIRouter(
 )
 
 
+@test_profile.get('/test')
 async def view_books(book: str = None, user=Depends(current_user)):
     async with async_session_maker() as session:
         select_book = select(Book).where(Book.owner_id == str(user.id))
         current_user_book = await session.scalars(select_book)
         result = current_user_book.all()
+
         try:
             if [x.as_dict() for x in result][0]['owner_id']:
                 if book is None:
