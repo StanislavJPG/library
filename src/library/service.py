@@ -1,8 +1,6 @@
-from typing import Annotated, Union
-
 import httpx
 from bs4 import BeautifulSoup as BS
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import insert, select
 
 from src.auth.base_config import current_optional_user
@@ -114,17 +112,23 @@ async def get_full_info(book: str):
     return image, title, description.text, None, urls[:-1][0]
 
 
+async def get_book_by_user(user_id: str):
+    async with async_session_maker() as session:
+        stmt = select(Book).where(Book.owner_id == user_id)
+        current_user_book = await session.scalars(stmt)
+        all_user_books = current_user_book.all()
+        return all_user_books
+
+
 async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
     info_book = await get_full_info(book)
 
     url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(info_book[4])}'
     url_orig = info_book[4][abs(book_number) % len(info_book[4])]
 
-    async with async_session_maker() as session:
-        select_book = select(Book).where(Book.owner_id == str(user.id))
-        current_user_book = await session.scalars(select_book)
-        all_user_books = current_user_book.all()
+    all_user_books = await get_book_by_user(user.id)
 
+    async with async_session_maker() as session:
         if info_book[4][abs(book_number) % len(info_book[4])] not in [x.as_dict()['url_orig'] for x in all_user_books]:
             stmt = insert(Book).values(
                 title=f'№{book_number}. {info_book[1]}',
@@ -140,13 +144,3 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
 
         raise HTTPException(status_code=409,
                             detail=status.HTTP_409_CONFLICT)
-
-
-# @test.get('/test/get_book_url')
-async def get_book_url_by_user(user_id: Union[str, None] = None):
-    async with async_session_maker() as session:
-        stmt = select(Book).where(Book.owner_id == user_id)
-        current_user_book = await session.scalars(stmt)
-        all_user_books = current_user_book.all()
-        return all_user_books
-
