@@ -2,87 +2,102 @@
 
 {% block head %}
 <title xmlns="http://www.w3.org/1999/html">Профіль</title>
-    <script src=""></script>
 {% endblock %}
 
 {% block content %}
-<div id="userProfile" class="rounded">
-    <div class="profileImage">
-        {% if user.profile_image %}
-        <img src="{{ user.profile_image }}" class="uploadButton photo">
-        {% else %}
-        <img src="{{ url_for('static', path='/img/capture.png') }}" class="uploadButton photo">
-        {% endif %}
-        <input type="file" id="file">
-        <label for="file" id="upload-btn"><img class="profileImageDefaultBtn" src="{{ url_for('static', path='/img/user.png') }}"></label>
-        <script src="/static/javascript/index.js"></script>
-    </div>
+{% if user %}
+    <div id="userProfile" class="rounded">
+        <div class="profileImage">
+            {% if user.profile_image %}
+            <img src="{{ user.profile_image }}" class="uploadButton photo">
+            {% else %}
+            <img src="{{ url_for('static', path='/img/capture.png') }}" class="uploadButton photo">
+            {% endif %}
+            <input type="file" id="file">
+            <label for="file" id="upload-btn"><img class="profileImageDefaultBtn" src="{{ url_for('static', path='/img/user.png') }}"></label>
+            <script src="/static/javascript/index.js"></script>
+        </div>
 
-    <div>
-        <h1>{{ user.username }}</h1>
-        <p><strong>Пошта:</strong> {{ user.email }}</p>
-        {% if user.is_verified %}
-        <strong>Пошта підтверджена</strong>
-        {% else %}
-        <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
-        <div id="popupContainer" class="popup-container">
-            <div class="popup-content">
-                <span class="close" id="closePopup">&times;</span>
-                <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
-                <div style="text-align: center;">
-                    <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти"></input>
-                    <div style="margin-top: 10px;">
-                    <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
-                            onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
+        <div>
+            <h1>{{ user.username }}</h1>
+            <p><strong>Пошта:</strong> {{ user.email }}</p>
+            {% if user.is_verified %}
+            <strong>Пошта підтверджена</strong>
+            {% else %}
+            <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
+            <div id="popupContainer" class="popup-container">
+                <div class="popup-content">
+                    <span class="close" id="closePopup">&times;</span>
+                    <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
+                    <div style="text-align: center;">
+                        <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти"></input>
+                        <div style="margin-top: 10px;">
+                        <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
+                                onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
+                        </div>
+                        <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
+                        <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
                     </div>
-                    <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
-                    <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
                 </div>
             </div>
+
+            {% endif %}
         </div>
-
-        {% endif %}
     </div>
-</div>
 
-<div class="container_info">
-    <div class="userProfile rounded">
-        <div class="search-form">
-            <input type="text" class="form-control" id="book_id" placeholder="Введіть книжку"/>
-            <div class="center">
-                <button class="btn btn-dark" onclick="">Пошук</button>
+    <div class="container_info">
+        <div class="userProfile rounded">
+            <div class="search-form">
+                <input type="text" class="form-control" id="book_id" placeholder="Введіть книжку"/>
+                <div class="center">
+                    <button class="btn btn-dark" onclick="">Пошук</button>
+                </div>
+            </div>
+            <div class="books-container">
+                {% for book in books %}
+                    <div class="book-info rounded">
+                        <div>
+                            <img src="{{ book['image'] }}" alt="Book hardcover" style="width:220px;height:310px;">
+                        </div>
+                        <div class="book-details">
+                            <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
+                            <p><strong>{{ book['description'] }}</strong></p>
+                            <button class="btn btn-dark" id="buttonsProfile" onclick=" window.open('{{ book['url'] }}','_blank')" type="button">Читати «{{ book['title'] }}»</button>
+                            <button onclick='deleteBook("{{ book["title"] }}")' class="btn btn-dark">Видалити книгу з мого профілю</button>
+                            <div style="margin-top: 15px;">
+                                <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                                <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                            {% if book['user_rating'] is not none %}
+                                <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
+                            {% else %}
+                                <p style="font-size: 17px;">Ви ще не оцінювали цю книгу</p>
+                            {% endif %}
+                            </div>
+                            <script src="/static/javascript/index.js"></script>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
-        <div class="books-container">
-            {% for book in books %}
+
+        <div class="userProfile rounded">
+            <div class="search-form">
+                <div class="center">
+                    <h1>Ваш рейтинг книг:</h1>
+                </div>
+            </div>
+            <div class="books-container">
                 <div class="book-info rounded">
-                    <div>
-                        <img src="{{ book['image'] }}" alt="Book hardcover" style="width:220px;height:310px;">
-                    </div>
                     <div class="book-details">
-                        <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
-                        <p><strong>{{ book['description'] }}</strong></p>
-                        <button class="btn btn-dark" id="buttonsProfile" onclick=" window.open('{{ book['url'] }}','_blank')" type="button">Читати «{{ book['title'] }}»</button>
-                        <button onclick='deleteBook("{{ book["title"] }}")' class="btn btn-dark">Видалити книгу з мого профілю</button>
-                        <script src="/static/javascript/index.js"></script>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="userProfile rounded">
-        <div class="search-form">
-            <div class="center">
-                <h1>Ваш рейтинг книг:</h1>
-            </div>
-        </div>
-        <div class="books-container">
-            <div class="book-info rounded">
-                <div class="book-details">
-                </div>
             </div>
         </div>
     </div>
-</div>
+{% else %}
+    <div style="margin-top: 350px; text-align: center; font-size: 40px;">
+        <b style="font-style: oblique;">Оп-ля... <img src="/static/img/error.png" style="width: 170px;"></b>
+        <p style="font-weight: bold; font-style: oblique;">401...</p>
+    </div>
+{% endif %}
 {% endblock %}

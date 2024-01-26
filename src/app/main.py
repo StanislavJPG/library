@@ -1,5 +1,9 @@
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from starlette import status
+from starlette.responses import JSONResponse, HTMLResponse
 
 from src.auth.base_config import fastapi_users, auth_backend
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
@@ -7,7 +11,7 @@ from src.library.service import test
 from src.profile.service import test_profile
 
 from src.weather.router import router as router_weather
-from src.base.router import router as router_base
+from src.base.router import router as router_base, templates
 from src.library.router import router as router_library
 from src.profile.router import router as router_profile
 from src.auth.router import router as router_auth
@@ -63,3 +67,18 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+
+@app.get('/{page}', response_class=HTMLResponse)
+async def handling_error_page(request: Request, page: str):
+    try:
+        content = templates.TemplateResponse(f'{page}.html', {'request': request})
+        return content
+    except Exception:
+        raise HTTPException(status_code=401, detail='Page not found')
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code},
+                                      status_code=exc.status_code)

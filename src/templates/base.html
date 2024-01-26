@@ -15,7 +15,7 @@
 </head>
 <body>
     <nav class="navbar navbar-light bg-light">
-        <a href="http://127.0.0.1:8000/base" class="navbar-brand">
+        <a href="http://127.0.0.1:8000/" class="navbar-brand">
             <img src="{{ url_for('static', path='/img/logo.png') }}" class="d-inline-block align-top" width="30" height="30" alt="">
             Your helper 24/7
         </a>
@@ -46,5 +46,33 @@
     </nav>
 </body>
 {% block content %}
+    <div class="container-info">
+        <div class="user-profile rounded">
+            <h1 class="center" style="margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
+            <div class="books-container" style="margin-top: 80px;">
+                {% for book in books %}
+                    <div class="book-info rounded">
+                        <div class="book-image">
+                            <img src="{{ book['image'] }}" style="width:220px;height:310px;" alt="Book hardcover">
+                        </div>
+                        <div class="book-details">
+                            <p><b class="title">«{{ book['title'] }}»</b></p>
+                            <p><strong class="description">{{ book['description'] }}</strong></p>
+                            <p class="owner-id">{{ book['owner_id'] }}</p>
+                            <button class="btn btn-dark" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
+                                Читати «{{ book['title'] }}»
+                            </button>
+                            <div class="rating-section">
+                                {% if book['user_rating'] is not none %}
+                                    <p class="rating">Рейтинг книги: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
+                                {% else %}
+                                    <p class="rating">Ви ще не оцінювали цю книгу</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 {% endblock %}
-</html>

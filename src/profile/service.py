@@ -14,21 +14,22 @@ test_profile = APIRouter(
 
 
 @test_profile.get('/test')
-async def view_books(book: str = None, user=Depends(current_user)):
-    async with async_session_maker() as session:
-        select_book = select(Book).where(Book.owner_id == str(user.id))
-        current_user_book = await session.scalars(select_book)
-        result = current_user_book.all()
+async def view_books(book: str = None, user=Depends(current_optional_user)):
+    if user:
+        async with async_session_maker() as session:
+            select_book = select(Book).where(Book.owner_id == str(user.id))
+            current_user_book = await session.scalars(select_book)
+            all_books_info_from_db = current_user_book.all()
 
-        try:
-            if [x.as_dict() for x in result][0]['owner_id']:
-                if book is None:
-                    return result
-                else:
-                    stmt = [x.as_dict() for x in result if x.as_dict()['title'] == book]
-                return stmt
-        except IndexError:
-            return []
+            try:
+                if [x.as_dict() for x in all_books_info_from_db][0]['owner_id']:
+                    if book is None:
+                        return all_books_info_from_db
+                    else:
+                        stmt = [x.as_dict() for x in all_books_info_from_db if x.as_dict()['title'] == book]
+                    return stmt
+            except IndexError:
+                return []
 
 
 async def get_user_image(image: UploadFile = File(...), user=Depends(current_user)):

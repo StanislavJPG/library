@@ -7,7 +7,7 @@ from fastapi_users.authentication import JWTStrategy
 from src.auth.manager import get_user_manager
 from src.database import User
 
-cookie_transport = CookieTransport(cookie_max_age=10800, cookie_name='U_CONF')
+cookie_transport = CookieTransport(cookie_max_age=None, cookie_name='U_CONF')
 
 SECRET = "SECRET"
 

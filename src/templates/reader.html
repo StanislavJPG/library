@@ -13,48 +13,83 @@
     }
   </style>
 </head>
-<body style="background-color:#323639;">
+<body style="background-color:#323639; overflow: hidden;">
 <div class="body">
 
-  <button id="Back" class="btn btn-light btn-sm" onclick="incrementNum_back()">🢀 Попередній варіант книги</button>
-  <button class="btn btn-success btn-sm" onclick="toggleFullscreen()">Повноекранний режим</button>
+  <button id="Back" class="btn btn-light btn-sm" onclick="incrementNum_back()">⠺ Попередній варіант книги</button>
+  <button class="btn btn-success btn-sm" onclick="toggleFullscreen()"> ⠿ Повноекранний режим</button>
   {% if user %}
-    <button data-book-index="{{ num }}" class="btn btn-primary btn-sm saveButton">Зберегти цю книгу до мого профілю</button>
+    <button data-book-index="{{ num }}" class="btn btn-primary btn-sm saveButton">⠳ Зберегти цю книгу до мого профілю</button>
   {% endif %}
   <script src="/static/javascript/save_db_script.js"></script>
-  <button id="Next" class="btn btn-light btn-sm" onclick="incrementNum()">Наступний варіант книги 🢂</button>
+  <button id="Next" class="btn btn-light btn-sm" onclick="incrementNum()">Наступний варіант книги ⠗</button>
   <script src="/static/javascript/book_switcher.js"></script>
 
   <div style="margin-top: 5px;">
-    <button class="btn btn-secondary btn-sm Button" style="width: 400px;" onclick="window.open('{{ book }}', '_blank')">Не працює книга на сайті? - читайте її з джерела!</button>
+    <button class="btn btn-secondary btn-sm Button" style="width: 400px;" onclick="window.open('{{ book }}', '_blank')">⠵ Не працює книга на сайті? - читайте її з джерела!</button>
   </div>
 
 </div>
 
 <embed
-      id="pdfEmbed"
-      src="{{ book }}"
-      type="application/pdf"
-      width="100%"
-      height="919px"
+    id="pdfEmbed"
+    src="{{ book }}"
+    type="application/pdf"
+    width="100%"
+    {% if user %}
+      {% if rating is not none %}
+      height="803px"
+    {% else %}
+      height="900px"
+      {% endif %}
+    {% endif %}
 />
+<script src="/static/javascript/book_switcher.js"></script>
+{% if user %}
+  {% if rating is not none %}
+    <div class="rating" style="margin-bottom: 50px;">
+      <b style="color: white; padding-right: 20px;">Спободалась книга? Оцініть її зірками, щоб інші теж зацінили! :)</b>
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+      <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
 
+    <form id="ratingForm">
+      <label>
+        <input type="radio" name="starsSet2" class="rating" value="1" />
+        <span class="fa fa-star icon"></span>
+      </label>
+      <label>
+        <input type="radio" name="starsSet2" class="rating" value="2" />
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+      </label>
+      <label>
+        <input type="radio" name="starsSet2" class="rating" value="3" />
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+      </label>
 
-  <script>
-    var pdfEmbed = document.getElementById('pdfEmbed');
-
-    function toggleFullscreen() {
-      if (pdfEmbed.requestFullscreen) {
-        pdfEmbed.requestFullscreen();
-      } else if (pdfEmbed.mozRequestFullScreen) {
-        pdfEmbed.mozRequestFullScreen();
-      } else if (pdfEmbed.webkitRequestFullscreen) {
-        pdfEmbed.webkitRequestFullscreen();
-      } else if (pdfEmbed.msRequestFullscreen) {
-        pdfEmbed.msRequestFullscreen();
-      }
-    }
-  </script>
-
+      <label>
+        <input type="radio" name="starsSet2" class="rating" value="4" />
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+      </label>
+      <label>
+        <input type="radio" name="starsSet2" class="rating" value="5" />
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+        <span class="fa fa-star icon"></span>
+      </label>
+      <p style="margin-top: 4px;">
+        <button type="button" onclick="confirmRating('{{ book }}')" class="btn btn-dark btn-sm">Зберегти оцінку</button>
+      </p>
+    </form>
+    </div>
+  {% endif %}
+{% endif %}
 </body>
 </html>

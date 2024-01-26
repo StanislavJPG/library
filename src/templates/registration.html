@@ -9,12 +9,12 @@
     {% if not user %}
         <div class="rounded container-auth">
             <div class="search-header-auth">
-                <h1>Рєстрація</h1>
+                <h1>Реєстрація</h1>
             </div>
                 <div class="form-input">
                     <input type="text" minlength="3" id="username" class="form-control" style="margin-bottom: 10px;" placeholder="Введіть ваше ім'я" required>
-                    <input type="email" minlength="7" id="email" class="form-control" style="margin-bottom: 10px;" placeholder="Введіть вашу пошту" required>
-                    <input type="password" minlength="7" id="password" class="form-control" placeholder="Придумайте пароль" required>
+                    <input type="email" minlength="7" id="email" class="form-control" style="margin-bottom: 10px;" placeholder="Пошта: повинна мати '@', та домен" required>
+                    <input type="password" minlength="7" id="password" class="form-control" placeholder="Пароль: мінімальна довжина - 7 символів" required>
                     <div><b style="color: red;" id="error-message"></b></div>
                     <button type="submit" onclick="registerUser(
                     document.getElementById('email').value,

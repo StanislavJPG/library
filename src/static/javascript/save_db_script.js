@@ -18,6 +18,7 @@ document.querySelectorAll('.saveButton').forEach(button => {
             .then(response => {
                 if (response.status === 200) {
                     alert('Книгу успішно збережено.');
+                    location.reload();
                 } else if (response.status === 401) {
                     alert('Помилка\nВам необхідно авторизуйтись, щоб зберегти книгу до профілю.');
                 } else if (response.status === 409) {

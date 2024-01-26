@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Request, Query, Depends
-from sqlalchemy import select
+from urllib.parse import quote, unquote
 
-from src.auth.base_config import current_optional_user
+from fastapi import APIRouter, Request, Query, Depends
+from sqlalchemy import select, update
+
+from src.auth.base_config import current_optional_user, current_user
 from src.base.router import templates
 from src.database import async_session_maker
 from src.library.models import Book
-from src.library.service import get_full_info, save_book_to_database, get_book_by_user
+from src.library.service import get_full_info, save_book_to_database, get_book_attr_by_user
+from src.library.shemas import RatingService
 
 router = APIRouter(
     tags=['Library_page']
@@ -34,7 +37,7 @@ async def library_search(request: Request, literature: str,
 
 @router.post('/library/save_book/{literature}')
 async def save_book_page(request: Request, literature: str,
-                         num: int = Query(..., description='Number'),
+                         num: int = Query(..., description='Number', gt=0),
                          user=Depends(current_optional_user)):
     database = await save_book_to_database(literature, num, user)
 
@@ -59,20 +62,38 @@ async def get_read_page(request: Request, literature: str,
     url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
 
     if user:
-        from_database = await get_book_by_user(user.id)
+        url_by_user = await get_book_attr_by_user(user.id, Book.url)
 
-        if url_from_current_cite in [x.as_dict()['url'] for x in from_database]:
-            async with async_session_maker() as session:
+        async with async_session_maker() as session:
+            if url_from_current_cite in url_by_user:
+                check_if_rating = select(Book.user_rating).where((Book.owner_id == str(user.id))
+                                                                 & (Book.url == url_from_current_cite))
+                scalars_request = await session.scalars(check_if_rating)
+                is_rating = scalars_request.all()
+
                 stmt = select(Book.url_orig).where(Book.url == url_from_current_cite)
                 book_session = await session.scalars(stmt)
                 book = book_session.first()    # this is necessary for quick load url directly from db (if it exists)
-        else:
-            book = await book_url_getter_to_read(literature, num)
+
+            else:
+                book = await book_url_getter_to_read(literature, num)
+                is_rating = None
     else:
         book = await book_url_getter_to_read(literature, num)
 
     return templates.TemplateResponse(
         'reader.html',
         {'request': request,
-         'book': book, 'title': literature.title(), 'num': num, 'user': user}
+         'book': book, 'title': literature.title(), 'num': num, 'user': user, 'rating': is_rating}
     )
+
+
+@router.post('/save_rating_to_database')
+async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(current_user)):
+    async with async_session_maker() as session:
+        stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
+            (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
+        stmt_general = update(Book).values(general_rating=rating_schema.)
+
+        await session.execute(stmt)
+        await session.commit()

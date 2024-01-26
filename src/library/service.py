@@ -2,6 +2,7 @@ import httpx
 from bs4 import BeautifulSoup as BS
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import insert, select
+from typing import Type
 
 from src.auth.base_config import current_optional_user
 from src.config import DEFAULT_IMAGE
@@ -94,7 +95,7 @@ async def get_page(url) -> BS:
         soup = BS(page.content, 'html.parser')
         return soup
 
-
+@test.get('/test/lp/{book}')
 async def get_full_info(book: str):
     urls = await modified_book_getter(book)
     page = await get_page(urls[1])
@@ -112,24 +113,24 @@ async def get_full_info(book: str):
     return image, title, description.text, None, urls[:-1][0]
 
 
-async def get_book_by_user(user_id: str):
+async def get_book_attr_by_user(user_id: str, book: Type[Book]):
     async with async_session_maker() as session:
-        stmt = select(Book).where(Book.owner_id == user_id)
+        stmt = select(book).where(Book.owner_id == user_id)
         current_user_book = await session.scalars(stmt)
-        all_user_books = current_user_book.all()
-        return all_user_books
+        url_by_user = current_user_book.all()
+        return url_by_user
 
 
 async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
-    info_book = await get_full_info(book)
+    info_book = await get_full_info(book.lower())
 
-    url = f'http://127.0.0.1:8000/read/{book}?num={book_number % len(info_book[4])}'
+    url = f'http://127.0.0.1:8000/read/{book.lower()}?num={book_number}'
     url_orig = info_book[4][abs(book_number) % len(info_book[4])]
 
-    all_user_books = await get_book_by_user(user.id)
+    url_by_user = await get_book_attr_by_user(user.id, Book.url_orig)
 
     async with async_session_maker() as session:
-        if info_book[4][abs(book_number) % len(info_book[4])] not in [x.as_dict()['url_orig'] for x in all_user_books]:
+        if info_book[4][abs(book_number) % len(info_book[4])] not in url_by_user:
             stmt = insert(Book).values(
                 title=f'№{book_number}. {info_book[1]}',
                 image=info_book[0],

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title xmlns="http://www.w3.org/1999/html">Оп-ля...</title>
+{% endblock %}
+
+{% block content %}
+    <div style="margin-top: 350px; text-align: center; font-size: 40px;">
+        <b style="font-style: oblique;">Оп-ля... Такої сторінки не існує... <img src="/static/img/error.png" style="width: 170px;"></b>
+        <p style="font-weight: bold; font-style: oblique;">{{ error }}...</p>
+    </div>
+{% endblock %}

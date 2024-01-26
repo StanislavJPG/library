@@ -21,8 +21,8 @@
 
         {% if book %}
         <div class="main-search-results">
-            <p class="your_search">Ви ввели: {{ user_title }} </p>
-            <p class="your_result">Результат: </p>
+            <font size="+2">Ви ввели: {{ user_title }} </font>
+            <p>Результат: </p>
                 <div class="search-results">
                     <div class="result-info">
                         <font size="+3" style="font-weight: bold;">«{{ book[1] }}»</font>
@@ -40,10 +40,15 @@
                         </a>
                     </b>
                 {% endif %}
-
-                <p style="color: red;" class="text-base font-bold">
-                    Збережена книга залишиться в вашому профілі, де Ви в будь-який момент зможете її прочитати!
-                </p>
+                {% if user %}
+                <b>
+                    Якщо бажаєте читати книги швидко, та не шукати їх знову - зберігайте до вашого профілю!
+                </b>
+                {% else %}
+                <b>
+                    Якщо бажаєте читати книги швидко, та не шукати їх знову - <a style="text-decoration: underline; color: black;" href="http://127.0.0.1:8000/login">Авторизуйтесь</a> та зберігайте їх до вашого профілю!
+                </b>
+                {% endif %}
 
                 <div class="button-container">
                     <b class="btn btn-dark readButton">Читати книгу «{{ book[1] }}»</b>

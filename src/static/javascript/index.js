@@ -39,7 +39,7 @@ function deleteBook(book_title) {
         .then(response => {
           if (response.status === 200){
               alert('Книга успішно видалена з Вашого профілю.');
-              window.location.href = '/profile';
+              location.reload();
           }
       })
     };

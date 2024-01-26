@@ -9,7 +9,7 @@ if (logoutButton) {
             if (response.ok) {
                 console.log('Logout successful');
                 alert('Ви успішно вийшли з профілю.')
-                window.location.href = '/base';
+                window.location.href = '/';
             } else {
                 console.error('Logout failed');
             }
@@ -24,29 +24,30 @@ if (logoutButton) {
 
 
 function loginUser(email, password) {
-    console.log(email);
-    console.log(password);
-  const loginUrl = "/auth/jwt/login";
-  const loginOptions = {
-    method: 'POST',
-    headers: {
-      'accept': 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `grant_type=&username=${email}&password=${password}&scope=&client_id=&client_secret=`,
-  };
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
 
-  fetch(loginUrl, loginOptions)
-    .then(response => {
-      if (response.status === 422){
-          document.getElementById("error-message").innerText = "Незрозумілий синтаксис"
-      }
-      else if (response.status === 400){
-          document.getElementById("error-message").innerText = "Перевірте введені дані"
-      }
-      else
-          window.location.href = '/base';
-    });
+      const loginUrl = "/auth/jwt/login";
+      const loginOptions = {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `grant_type=&username=${email}&password=${password}&scope=&client_id=&client_secret=`,
+      };
+
+      fetch(loginUrl, loginOptions)
+        .then(response => {
+          if (response.status === 422){
+              document.getElementById("error-message").innerText = "Незрозумілий синтаксис"
+          }
+          else if (response.status === 400){
+              document.getElementById("error-message").innerText = "Перевірте введені дані"
+          } else {
+                window.location.href = '/';
+            }
+        });
 }
 
 

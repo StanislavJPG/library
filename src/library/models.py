@@ -15,6 +15,9 @@ class Book(Base):
     description = Column(String)
     url = Column(String)
     url_orig = Column(String)
+    user_rating = Column(Integer)
+    general_ratings = Column(Integer)
+
     owner_id = Column(UUID, ForeignKey(User.id))
 
     owner = relationship(User, back_populates="items")
