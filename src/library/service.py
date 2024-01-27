@@ -10,6 +10,7 @@ from src.database import async_session_maker
 from src.library.models import Book
 from fastapi import status
 
+from src.library.shemas import RatingService
 
 test = APIRouter(
     prefix='/test'
@@ -145,3 +146,5 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
 
         raise HTTPException(status_code=409,
                             detail=status.HTTP_409_CONFLICT)
+
+

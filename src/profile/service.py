@@ -24,6 +24,7 @@ async def view_books(book: str = None, user=Depends(current_optional_user)):
             try:
                 if [x.as_dict() for x in all_books_info_from_db][0]['owner_id']:
                     if book is None:
+                        # print([x.as_dict() for x in all_books_info_from_db])
                         return all_books_info_from_db
                     else:
                         stmt = [x.as_dict() for x in all_books_info_from_db if x.as_dict()['title'] == book]

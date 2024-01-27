@@ -1,12 +1,14 @@
+from functools import reduce
 from urllib.parse import quote, unquote
 
 from fastapi import APIRouter, Request, Query, Depends
-from sqlalchemy import select, update
+from sqlalchemy import select, update, insert
+from sqlalchemy.sql.functions import coalesce
 
 from src.auth.base_config import current_optional_user, current_user
 from src.base.router import templates
 from src.database import async_session_maker
-from src.library.models import Book
+from src.library.models import Book, BookRating
 from src.library.service import get_full_info, save_book_to_database, get_book_attr_by_user
 from src.library.shemas import RatingService
 
@@ -76,6 +78,9 @@ async def get_read_page(request: Request, literature: str,
                 book = book_session.first()    # this is necessary for quick load url directly from db (if it exists)
 
             else:
+                # stmt = select(BookRating.url_orig).where(
+                #     BookRating.url_orig == 'pass')
+
                 book = await book_url_getter_to_read(literature, num)
                 is_rating = None
     else:
@@ -93,7 +98,38 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
     async with async_session_maker() as session:
         stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
             (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
-        stmt_general = update(Book).values(general_rating=rating_schema.)
 
         await session.execute(stmt)
         await session.commit()
+
+        stmt_users = select(Book.user_rating).where(Book.url_orig == rating_schema.current_book_url)
+        users_scalars = await session.scalars(stmt_users)
+        all_users_rating = users_scalars.all()
+
+        summary = 0
+        for rating in all_users_rating:
+            summary += rating
+        general_rating_statistic = summary / (len([x for x in all_users_rating if x is not None]))
+        # print(general_rating_statistic)
+
+        stmt_check = select(BookRating).where(BookRating.url_orig == rating_schema.current_book_url)
+        column_exists = await session.execute(stmt_check)
+        column_exists = column_exists.first() is not None
+
+        if not column_exists:
+            inserting_rating_stmt = insert(BookRating).values(url_orig=rating_schema.current_book_url,
+                                                              general_rating=general_rating_statistic)
+            await session.execute(inserting_rating_stmt)
+            await session.commit()
+        else:
+            rating_new_stmt = update(BookRating).values(general_rating=general_rating_statistic).where(
+                BookRating.url_orig == rating_schema.current_book_url
+            )
+            await session.execute(rating_new_stmt)
+            await session.commit()
+
+        # logic is implement new models, that will accumulate all rating
+        # by specific book.
+
+        # Or you can definitely make something with summary / (len([x for x in all_users if x is not None]))
+        # hmm???

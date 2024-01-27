@@ -58,17 +58,16 @@
                         <div class="book-details">
                             <p><b class="title">«{{ book['title'] }}»</b></p>
                             <p><strong class="description">{{ book['description'] }}</strong></p>
-                            <p class="owner-id">{{ book['owner_id'] }}</p>
+                            {% for rating in ratings %}
+                                {% if rating['url_orig'] == book['url_orig'] %}
+                                    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                                    <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                                    <p class="owner-id">Середній рейтинг книги серед користувачів: {{ rating['general_rating'] }} <span class="fa fa-star icon"></span></p>
+                                {% endif %}
+                            {% endfor %}
                             <button class="btn btn-dark" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
                                 Читати «{{ book['title'] }}»
                             </button>
-                            <div class="rating-section">
-                                {% if book['user_rating'] is not none %}
-                                    <p class="rating">Рейтинг книги: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
-                                {% else %}
-                                    <p class="rating">Ви ще не оцінювали цю книгу</p>
-                                {% endif %}
-                            </div>
                         </div>
                     </div>
                 {% endfor %}

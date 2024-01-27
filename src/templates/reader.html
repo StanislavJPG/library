@@ -37,16 +37,13 @@
     type="application/pdf"
     width="100%"
     {% if user %}
-      {% if rating is not none %}
       height="803px"
     {% else %}
       height="900px"
-      {% endif %}
     {% endif %}
 />
 <script src="/static/javascript/book_switcher.js"></script>
 {% if user %}
-  {% if rating is not none %}
     <div class="rating" style="margin-bottom: 50px;">
       <b style="color: white; padding-right: 20px;">Спободалась книга? Оцініть її зірками, щоб інші теж зацінили! :)</b>
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
@@ -89,7 +86,6 @@
       </p>
     </form>
     </div>
-  {% endif %}
 {% endif %}
 </body>
 </html>

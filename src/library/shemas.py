@@ -13,9 +13,20 @@ class BookCreate(BaseModel):
     url_orig: str
     owner_id: int
     user_rating: int
-    general_ratings: int
+
+
+class BookRating(BaseModel):
+    __tablename__ = "rating"
+
+    id: int
+    url_orig: str
+    title: str
+    image: str
+    description: str
+    general_rating: float
 
 
 class RatingService(BaseModel):
     current_book_url: str
     user_rating: conint(gt=0, le=5)
+    title: str
