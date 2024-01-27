@@ -29,6 +29,7 @@ class BookRating(Base):
 
     id = Column(Integer, primary_key=True, unique=True)
     url_orig = Column(String)
+    url = Column(String)
     title = Column(String)
     image = Column(String)
     description = Column(String)

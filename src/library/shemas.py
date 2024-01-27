@@ -30,3 +30,4 @@ class RatingService(BaseModel):
     current_book_url: str
     user_rating: conint(gt=0, le=5)
     title: str
+    num: int

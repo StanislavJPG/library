@@ -7,10 +7,8 @@ from typing import Type
 from src.auth.base_config import current_optional_user
 from src.config import DEFAULT_IMAGE
 from src.database import async_session_maker
-from src.library.models import Book
+from src.library.models import Book, BookRating
 from fastapi import status
-
-from src.library.shemas import RatingService
 
 test = APIRouter(
     prefix='/test'
@@ -148,3 +146,24 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
                             detail=status.HTTP_409_CONFLICT)
 
 
+async def book_url_getter_to_read(literature: str, num: int):
+    info_book = await get_full_info(literature)
+    book = info_book[4][abs(num) % len(info_book[4])]
+    # it's important if user trying to read more books than exists
+
+    return book
+
+
+async def reader_session_by_user(literature: str, num: int):
+    url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
+
+    async with async_session_maker() as session:
+        stmt = select(BookRating.url_orig).where(
+            BookRating.url == url_from_current_cite)
+        book_session = await session.scalars(stmt)
+        book = book_session.first()
+
+        if book is None:
+            book = await book_url_getter_to_read(literature, num)
+
+    return book

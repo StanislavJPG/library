@@ -38,7 +38,7 @@ function incrementNum_back() {
       }
     }
 
-function confirmRating(url) {
+function confirmRating(url, title, num) {
       const ratingInputs = document.querySelectorAll('.rating');
 
       ratingInputs.forEach(ratingInput => {
@@ -55,7 +55,10 @@ function confirmRating(url) {
           const data = {
               "current_book_url": url,
               "user_rating": ratingValue,
+              "title": title,
+              "num": num,
               }
+
 
           const ratingOptions = {
               method: 'POST',

@@ -1,15 +1,11 @@
-from functools import reduce
-from urllib.parse import quote, unquote
-
 from fastapi import APIRouter, Request, Query, Depends
 from sqlalchemy import select, update, insert
-from sqlalchemy.sql.functions import coalesce
 
 from src.auth.base_config import current_optional_user, current_user
 from src.base.router import templates
 from src.database import async_session_maker
 from src.library.models import Book, BookRating
-from src.library.service import get_full_info, save_book_to_database, get_book_attr_by_user
+from src.library.service import get_full_info, save_book_to_database, get_book_attr_by_user, reader_session_by_user
 from src.library.shemas import RatingService
 
 router = APIRouter(
@@ -50,23 +46,16 @@ async def save_book_page(request: Request, literature: str,
     )
 
 
-async def book_url_getter_to_read(literature: str, num: int):
-    info_book = await get_full_info(literature)
-    book = info_book[4][abs(num) % len(info_book[4])]
-    return book
-
-
 @router.get('/read/{literature}')
 async def get_read_page(request: Request, literature: str,
                         num: int = Query(..., description='Number', gt=0),
                         user=Depends(current_optional_user)):
 
     url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
+    async with async_session_maker() as session:
+        if user:
+            url_by_user = await get_book_attr_by_user(user.id, Book.url)
 
-    if user:
-        url_by_user = await get_book_attr_by_user(user.id, Book.url)
-
-        async with async_session_maker() as session:
             if url_from_current_cite in url_by_user:
                 check_if_rating = select(Book.user_rating).where((Book.owner_id == str(user.id))
                                                                  & (Book.url == url_from_current_cite))
@@ -74,17 +63,17 @@ async def get_read_page(request: Request, literature: str,
                 is_rating = scalars_request.all()
 
                 stmt = select(Book.url_orig).where(Book.url == url_from_current_cite)
+                # stmt = select(BookRating.url_orig).where(BookRating.url == url_from_current_cite)
                 book_session = await session.scalars(stmt)
                 book = book_session.first()    # this is necessary for quick load url directly from db (if it exists)
 
             else:
-                # stmt = select(BookRating.url_orig).where(
-                #     BookRating.url_orig == 'pass')
-
-                book = await book_url_getter_to_read(literature, num)
+                book = await reader_session_by_user(literature, num)
                 is_rating = None
-    else:
-        book = await book_url_getter_to_read(literature, num)
+        else:
+            book = await reader_session_by_user(literature, num)
+
+            is_rating = None
 
     return templates.TemplateResponse(
         'reader.html',
@@ -98,7 +87,6 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
     async with async_session_maker() as session:
         stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
             (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
-
         await session.execute(stmt)
         await session.commit()
 
@@ -108,17 +96,29 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
 
         summary = 0
         for rating in all_users_rating:
-            summary += rating
+            if rating is not None:
+                summary += rating
+
+        # listen, you can just keep (len([x for x in all_users_rating if x is not None])) in db
+        # it's important when you try to set your rating without saving book to profile!
+
         general_rating_statistic = summary / (len([x for x in all_users_rating if x is not None]))
-        # print(general_rating_statistic)
 
         stmt_check = select(BookRating).where(BookRating.url_orig == rating_schema.current_book_url)
         column_exists = await session.execute(stmt_check)
-        column_exists = column_exists.first() is not None
+        column_not_exists = column_exists.first() is None
 
-        if not column_exists:
-            inserting_rating_stmt = insert(BookRating).values(url_orig=rating_schema.current_book_url,
-                                                              general_rating=general_rating_statistic)
+        if column_not_exists:
+            info = await get_full_info(rating_schema.title)
+
+            inserting_rating_stmt = insert(BookRating).values(
+                url_orig=rating_schema.current_book_url,
+                url=f'http://127.0.0.1:8000/read/{rating_schema.title.lower()}?num={rating_schema.num}',
+                title=rating_schema.title,
+                image=info[0],
+                description=info[2],
+                general_rating=general_rating_statistic,
+            )
             await session.execute(inserting_rating_stmt)
             await session.commit()
         else:

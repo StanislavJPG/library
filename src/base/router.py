@@ -20,24 +20,27 @@ async def get_base_page(request: Request, user=Depends(current_optional_user)):
         stmt2_scalars = await session.scalars(stmt2)
         ratings = stmt2_scalars.all()
 
-        stmt = select(Book).limit(limit=10).where(Book.user_rating != 0).order_by(desc(Book.user_rating))
+        # stmt = select(Book).limit(limit=10).where(Book.user_rating != 0).order_by(desc(Book.user_rating))
+        #
+        # stmt_scalars = await session.scalars(stmt)
+        # books = stmt_scalars.all()
+        #
+        # exclude = ['id', 'owner_id', 'user_rating']
+        # unique_books = set()
+        #
+        # filtered_books = [
+        #     {key: value for key, value in book.as_dict().items() if key not in exclude}
+        #     for book in books
+        #     if (filtered := tuple((key, value) for key, value in book.as_dict().items() if
+        #                           key not in exclude)) not in unique_books and not unique_books.add(filtered)
+        # ]
+        #
+        # books = [book for book in filtered_books if book['url_orig']
+        #          in [rating.as_dict()['url_orig'] for rating in ratings]]
 
-        stmt_scalars = await session.scalars(stmt)
-        books = stmt_scalars.all()
-
-        exclude = ['id', 'owner_id', 'user_rating']
-        unique_books = set()
-
-        filtered_books = [
-            {key: value for key, value in book.as_dict().items() if key not in exclude}
-            for book in books
-            if (filtered := tuple((key, value) for key, value in book.as_dict().items() if
-                                  key not in exclude)) not in unique_books and not unique_books.add(filtered)
-        ]
-
-        books = [book for book in filtered_books if book['url_orig']
-                 in [rating.as_dict()['url_orig'] for rating in ratings]]
-        # print(books)
+        book_info_from_other_model = select(BookRating)
+        book_info_scalars = await session.scalars(book_info_from_other_model)
+        books = book_info_scalars.all()
 
     return templates.TemplateResponse(
         'base.html',
@@ -46,11 +49,11 @@ async def get_base_page(request: Request, user=Depends(current_optional_user)):
     )
 
 
-@router.get('/test/')
-async def stest():
-    async with async_session_maker() as session:
-        stmt = select(Book).limit(limit=10).where(Book.user_rating != 0).order_by(desc(Book.user_rating))
-
-        stmt_scalars = await session.scalars(stmt)
-        books = stmt_scalars.all()
-    return [x.as_dict()['url_orig'] for x in books]
+# @router.get('/test/')
+# async def stest():
+#     async with async_session_maker() as session:
+#         stmt = select(Book).limit(limit=10).where(Book.user_rating != 0).order_by(desc(Book.user_rating))
+#
+#         stmt_scalars = await session.scalars(stmt)
+#         books = stmt_scalars.all()
+#     return [x.as_dict()['url_orig'] for x in books]
