@@ -20,7 +20,6 @@
             Your helper 24/7
         </a>
         <div class="form-inline my-2 my-lg-0">
-            <a href="http://127.0.0.1:8000/weather" class="navbar-brand mb-0 h1">Погода</a>
             <a href="http://127.0.0.1:8000/library" class="navbar-brand mb-0 h1">Бібліотека</a>
             {% if user %}
                 <a href="http://127.0.0.1:8000/profile" class="navbar-brand mb-0 h1">Мій профіль</a>
@@ -62,11 +61,14 @@
                                 {% if rating['url_orig'] == book['url_orig'] %}
                                     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
                                     <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
-                                    <p class="owner-id">Середній рейтинг книги серед користувачів: {{ rating['general_rating'] }} <span class="fa fa-star icon"></span></p>
+                                    {% if none not in [rating['rating'], rating['rating_count']] %}
+                                        <p class="owner-id">Середній рейтинг книги серед користувачів: {{ rating['rating'] / rating['rating_count'] }} <span class="fa fa-star icon"></span></p>
+                                        <p>Користувачів оцінило книгу: {{ rating['rating_count'] }}</p>
+                                    {% endif %}
                                 {% endif %}
                             {% endfor %}
                             <button class="btn btn-dark" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
-                                Читати «{{ book['title'] }}»
+                                Читати цю книгу
                             </button>
                         </div>
                     </div>

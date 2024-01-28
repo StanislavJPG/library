@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, Query, Depends
 from sqlalchemy import select, update, insert
+from sqlalchemy.sql.functions import coalesce
 
 from src.auth.base_config import current_optional_user, current_user
 from src.base.router import templates
@@ -85,27 +86,21 @@ async def get_read_page(request: Request, literature: str,
 @router.post('/save_rating_to_database')
 async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(current_user)):
     async with async_session_maker() as session:
+        stmt_is_rating_exists = select(Book.user_rating).where(
+            (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
+        is_rating = await session.scalars(stmt_is_rating_exists)
+        rating = is_rating.first()
+
+        # 1 - when user have this book in db, but have no rating yet
+        # 2 - when user do NOT have this book in db, but have rating yet
+
         stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
             (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
         await session.execute(stmt)
         await session.commit()
 
-        stmt_users = select(Book.user_rating).where(Book.url_orig == rating_schema.current_book_url)
-        users_scalars = await session.scalars(stmt_users)
-        all_users_rating = users_scalars.all()
-
-        summary = 0
-        for rating in all_users_rating:
-            if rating is not None:
-                summary += rating
-
-        # listen, you can just keep (len([x for x in all_users_rating if x is not None])) in db
-        # it's important when you try to set your rating without saving book to profile!
-
-        general_rating_statistic = summary / (len([x for x in all_users_rating if x is not None]))
-
-        stmt_check = select(BookRating).where(BookRating.url_orig == rating_schema.current_book_url)
-        column_exists = await session.execute(stmt_check)
+        stmt_check_column = select(BookRating).where(BookRating.url_orig == rating_schema.current_book_url)
+        column_exists = await session.execute(stmt_check_column)
         column_not_exists = column_exists.first() is None
 
         if column_not_exists:
@@ -114,22 +109,25 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
             inserting_rating_stmt = insert(BookRating).values(
                 url_orig=rating_schema.current_book_url,
                 url=f'http://127.0.0.1:8000/read/{rating_schema.title.lower()}?num={rating_schema.num}',
-                title=rating_schema.title,
+                title=f'{rating_schema.num}. {rating_schema.title}',
                 image=info[0],
                 description=info[2],
-                general_rating=general_rating_statistic,
+                rating=rating_schema.user_rating,
+                rating_count=1
             )
             await session.execute(inserting_rating_stmt)
             await session.commit()
         else:
-            rating_new_stmt = update(BookRating).values(general_rating=general_rating_statistic).where(
-                BookRating.url_orig == rating_schema.current_book_url
-            )
+            if rating is None:
+                rating_new_stmt = update(BookRating).values(
+                    rating=coalesce(BookRating.rating, 0) + rating_schema.user_rating,
+                    rating_count=coalesce(BookRating.rating_count, 0) + 1).where(
+                    BookRating.url_orig == rating_schema.current_book_url
+                )
+            else:
+                rating_new_stmt = update(BookRating).values(
+                    rating=(coalesce(BookRating.rating) - rating) + rating_schema.user_rating
+                )
+
             await session.execute(rating_new_stmt)
             await session.commit()
-
-        # logic is implement new models, that will accumulate all rating
-        # by specific book.
-
-        # Or you can definitely make something with summary / (len([x for x in all_users if x is not None]))
-        # hmm???

@@ -136,14 +136,15 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
                 description=info_book[2],
                 url_orig=url_orig,
                 url=url,
-                owner_id=user.id
+                owner_id=user.id,
+                saved_to_profile=True
             )
             await session.execute(stmt)
             await session.commit()
-            return {'detail': 200}
+            return {'success': 200}
 
-        raise HTTPException(status_code=409,
-                            detail=status.HTTP_409_CONFLICT)
+    raise HTTPException(status_code=409,
+                        detail=status.HTTP_409_CONFLICT)
 
 
 async def book_url_getter_to_read(literature: str, num: int):

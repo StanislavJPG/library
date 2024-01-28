@@ -9,3 +9,10 @@
 .rating {
     text-align: center;
 }
+
+.auth_btn {
+    color: white;
+    padding-right: 20px;
+    margin-top: 20px;
+    text-align: center;
+}

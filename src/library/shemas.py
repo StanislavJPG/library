@@ -23,7 +23,8 @@ class BookRating(BaseModel):
     title: str
     image: str
     description: str
-    general_rating: float
+    rating: int
+    rating_counter: int
 
 
 class RatingService(BaseModel):
