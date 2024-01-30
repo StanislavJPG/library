@@ -1,16 +1,13 @@
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from starlette import status
-from starlette.responses import JSONResponse, HTMLResponse
+from starlette.responses import HTMLResponse
 
 from src.auth.base_config import fastapi_users, auth_backend
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.library.service import test
 from src.profile.service import test_profile
 
-from src.weather.router import router as router_weather
+# from src.weather.router import router as router_weather
 from src.base.router import router as router_base, templates
 from src.library.router import router as router_library
 from src.profile.router import router as router_profile
@@ -20,10 +17,10 @@ from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI(
-    title='Helper24/7'
+    title='Library'
 )
 
-app.include_router(router_weather)
+# app.include_router(router_weather)
 app.include_router(router_base)
 app.include_router(router_library)
 app.include_router(router_profile)

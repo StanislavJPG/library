@@ -89,13 +89,36 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
         stmt_is_rating_exists = select(Book.user_rating).where(
             (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
         is_rating = await session.scalars(stmt_is_rating_exists)
-        rating = is_rating.first()
+        is_rating_exists = is_rating.first()
 
-        # 1 - when user have this book in db, but have no rating yet
-        # 2 - when user do NOT have this book in db, but have rating yet
-
-        stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
+        stmt_is_book_exists = select(Book).where(
             (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
+        is_book_exists = await session.scalars(stmt_is_book_exists)
+        is_book_exists = is_book_exists.first()
+
+        # 1 case - when user have this book in db, but have no rating yet
+        # 2 case - when user do NOT have this book in db, but have rating yet
+
+        if is_book_exists is not None:
+            stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
+                (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
+        else:
+            if is_rating_exists is None and is_book_exists is None:
+                info = await get_full_info(rating_schema.title)
+                stmt = insert(Book).values(
+                    title=f'№{rating_schema.num}. {rating_schema.title}',
+                    image=info[0],
+                    description=info[2],
+                    url_orig=rating_schema.current_book_url,
+                    url=f'http://127.0.0.1:8000/read/{rating_schema.title.lower()}?num={rating_schema.num}',
+                    owner_id=user.id,
+                    user_rating=rating_schema.user_rating,
+                    saved_to_profile=False
+                )
+            else:
+                stmt = update(Book).values(user_rating=rating_schema.user_rating).where(
+                    (Book.owner_id == str(user.id)) & (Book.url_orig == rating_schema.current_book_url))
+
         await session.execute(stmt)
         await session.commit()
 
@@ -105,7 +128,6 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
 
         if column_not_exists:
             info = await get_full_info(rating_schema.title)
-
             inserting_rating_stmt = insert(BookRating).values(
                 url_orig=rating_schema.current_book_url,
                 url=f'http://127.0.0.1:8000/read/{rating_schema.title.lower()}?num={rating_schema.num}',
@@ -118,7 +140,8 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
             await session.execute(inserting_rating_stmt)
             await session.commit()
         else:
-            if rating is None:
+            if is_rating_exists is None:
+
                 rating_new_stmt = update(BookRating).values(
                     rating=coalesce(BookRating.rating, 0) + rating_schema.user_rating,
                     rating_count=coalesce(BookRating.rating_count, 0) + 1).where(
@@ -126,8 +149,8 @@ async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(c
                 )
             else:
                 rating_new_stmt = update(BookRating).values(
-                    rating=(coalesce(BookRating.rating) - rating) + rating_schema.user_rating
-                )
+                    rating=(coalesce(BookRating.rating) - is_rating_exists) + rating_schema.user_rating
+                ).where(BookRating.url_orig == rating_schema.current_book_url)
 
             await session.execute(rating_new_stmt)
             await session.commit()

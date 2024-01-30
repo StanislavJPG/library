@@ -24,21 +24,9 @@ async def view_books(book: str = None, user=Depends(current_optional_user)):
             try:
                 if [x.as_dict() for x in all_books_info_from_db][0]['owner_id']:
                     if book is None:
-                        # print([x.as_dict() for x in all_books_info_from_db])
                         return all_books_info_from_db
                     else:
                         stmt = [x.as_dict() for x in all_books_info_from_db if x.as_dict()['title'] == book]
                     return stmt
             except IndexError:
                 return []
-
-
-async def get_user_image(image: UploadFile = File(...), user=Depends(current_user)):
-    image_content = await image.read()
-    image_url = f"data:image/{image.content_type.split('/')[1]};base64,{base64.b64encode(image_content).decode()}"
-
-    async with async_session_maker() as session:
-        stmt = update(User).where(User.id == str(user.id)).values(profile_image=image_url)
-        await session.execute(stmt)
-        await session.commit()
-        return {'Success': 200}

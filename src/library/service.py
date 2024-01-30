@@ -1,7 +1,7 @@
 import httpx
 from bs4 import BeautifulSoup as BS
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 from typing import Type
 
 from src.auth.base_config import current_optional_user
@@ -127,6 +127,7 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
     url_orig = info_book[4][abs(book_number) % len(info_book[4])]
 
     url_by_user = await get_book_attr_by_user(user.id, Book.url_orig)
+    print(url_orig, url_by_user)
 
     async with async_session_maker() as session:
         if info_book[4][abs(book_number) % len(info_book[4])] not in url_by_user:
@@ -142,6 +143,13 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
             await session.execute(stmt)
             await session.commit()
             return {'success': 200}
+        # elif info_book[4][abs(book_number) % len(info_book[4])] in url_by_user:
+        #     stmt = update(Book).values(
+        #         saved_to_profile=True
+        #     )
+        #     await session.execute(stmt)
+        #     await session.commit()
+        #     return {'success': 200}
 
     raise HTTPException(status_code=409,
                         detail=status.HTTP_409_CONFLICT)
@@ -149,8 +157,9 @@ async def save_book_to_database(book: str, book_number: int, user=Depends(curren
 
 async def book_url_getter_to_read(literature: str, num: int):
     info_book = await get_full_info(literature)
+
     book = info_book[4][abs(num) % len(info_book[4])]
-    # it's important if user trying to read more books than exists
+    # it's important if user trying to read more books than exists atm
 
     return book
 

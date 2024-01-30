@@ -1,8 +1,6 @@
 .container {
-    width: 1000px;
-    margin: 0 auto;
     text-align: center;
-    padding: 20px;
+    margin-top: 50px;
 }
 
 #userProfile {
@@ -44,7 +42,8 @@
 
 .search-form {
     text-align: center;
-    margin-bottom: 20px;
+    margin-top: 30px;
+
 }
 
 #book_id {
@@ -63,6 +62,7 @@
 
 .center {
     text-align: center;
+    margin-top: 10px;
 }
 
 .main-search-results {
@@ -225,4 +225,8 @@ body {
     right: 10px;
     font-size: 20px;
     cursor: pointer;
+}
+
+.navbar-brand {
+    color: white;
 }

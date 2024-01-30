@@ -19,7 +19,7 @@
         </div>
 
         <div>
-            <h1>{{ user.username }}</h1>
+            <h1 class="text-muted">{{ user.username }}</h1>
             <p><strong>Пошта:</strong> {{ user.email }}</p>
             {% if user.is_verified %}
             <strong>Пошта підтверджена</strong>
@@ -55,42 +55,75 @@
             </div>
             <div class="books-container">
                 {% for book in books %}
-                    <div class="book-info rounded" style="max-width: 300px;">
-                        <div>
-                            <img src="{{ book['image'] }}" alt="Book hardcover" style="width:220px;height:310px;">
-                        </div>
-                        <div class="book-details">
-                            <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
-                            <p><strong>{{ book['description'] }}</strong></p>
-                            <button class="btn btn-dark" id="buttonsProfile" onclick=" window.open('{{ book['url'] }}','_blank')" type="button">Читати «{{ book['title'] }}»</button>
-                            <button onclick='deleteBook("{{ book["title"] }}")' class="btn btn-dark">Видалити книгу з мого профілю</button>
-                            <div style="margin-top: 15px;">
-                                <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
-                                <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
-                            {% if book['user_rating'] is not none %}
-                                <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
-                            {% else %}
-                                <p style="font-size: 17px;">Ви ще не оцінювали цю книгу</p>
-                            {% endif %}
+                    {% if book['saved_to_profile'] %}
+                        <div class="book-info rounded" style="max-width: 300px;">
+                            <div>
+                                <img src="{{ book['image'] }}" alt="Book hardcover" style="width:220px;height:310px;">
                             </div>
-                            <script src="/static/javascript/index.js"></script>
+                            <div class="book-details">
+                                <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
+                                <p><strong>{{ book['description'] }}</strong></p>
+                                <button class="btn btn-dark" id="buttonsProfile" onclick=" window.open('{{ book['url'] }}','_blank')" type="button">Читати «{{ book['title'] }}»</button>
+                                <button onclick='deleteBook("{{ book["title"] }}")' class="btn btn-dark">Видалити книгу з мого профілю</button>
+                                <div style="margin-top: 15px;">
+                                    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                                    <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                                {% if book['user_rating'] is not none %}
+                                    <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
+                                {% else %}
+                                    <p style="font-size: 17px;">Ви ще не оцінювали цю книгу</p>
+                                {% endif %}
+                                </div>
+                                <script src="/static/javascript/index.js"></script>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                 {% endfor %}
             </div>
+            {% if true %}
+            <div style="text-align: center;">
+                <button onclick='' class="btn btn-dark btn-sm">Далі</button>
+            </div>
+            {% endif %}
         </div>
 
         <div class="userProfile rounded">
             <div class="search-form">
                 <div class="center">
-                    <h1>Ваш рейтинг книг:</h1>
+                    <h1 class="text-muted">Ваша історія рейтингу книг:</h1>
                 </div>
             </div>
-            <div class="books-container">
-                <div class="book-info rounded">
-                    <div class="book-details">
-                    </div>
+            <div style="flex-direction: column; display: flex;">
+                <div class="book-details">
+                    {% for book in books %}
+                        {% if not book['saved_to_profile'] %}
+                            <div class="book-info rounded" style="max-width: 1000px; display: flex; justify-content: center;">
+                                <div style="text-align: left; flex-shrink: 0; margin-right: 20px;">
+                                    <img src="{{ book['image'] }}" alt="Book hardcover" style="width:140px;height:190px;">
+                                </div>
+                                <div class="book-details" style="text-align: center;">
+                                    <p><b style="font-size: 23px;">«{{ book['title'] }}»</b></p>
+                                    <div style="margin-top: 15px;">
+                                        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                                        <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                                        <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ book['user_rating'] }} <span class="fa fa-star icon"></span></p>
+                                        <button onclick='' class="btn btn-dark btn-sm">Змінити рейтинг книги</button>
+                                        <p>
+                                            <button data-book-index="{{ num }}" class="btn btn-dark btn-sm saveButton">Зберегти цю книгу до мого профілю</button>
+                                        </p>
+                                        <script src="/static/javascript/save_db_script.js"></script>
+                                    </div>
+                                    <script src="/static/javascript/index.js"></script>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
+                {% if true %}
+                    <div style="text-align: center;">
+                        <button onclick='' class="btn btn-dark btn-sm">Далі</button>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

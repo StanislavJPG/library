@@ -14,6 +14,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.Success === 200) {
+                    alert('Фото профілю успішно збережно');
+                    location.reload();
                     img.setAttribute('src', URL.createObjectURL(chosenFile));
                 }
             })
