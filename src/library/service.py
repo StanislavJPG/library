@@ -121,35 +121,41 @@ async def get_book_attr_by_user(user_id: str, book: Type[Book]):
 
 
 async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
-    info_book = await get_full_info(book.lower())
-
     url = f'http://127.0.0.1:8000/read/{book.lower()}?num={book_number}'
-    url_orig = info_book[4][abs(book_number) % len(info_book[4])]
 
-    url_by_user = await get_book_attr_by_user(user.id, Book.url_orig)
-    print(url_orig, url_by_user)
+    stmt_is_rated_book_in_db = select(Book).where(
+        (Book.owner_id == str(user.id)) &
+        (Book.saved_to_profile == False) & (Book.url == url))
 
     async with async_session_maker() as session:
-        if info_book[4][abs(book_number) % len(info_book[4])] not in url_by_user:
-            stmt = insert(Book).values(
-                title=f'№{book_number}. {info_book[1]}',
-                image=info_book[0],
-                description=info_book[2],
-                url_orig=url_orig,
-                url=url,
-                owner_id=user.id,
-                saved_to_profile=True
-            )
+        is_rated_book_in_db = await session.scalars(stmt_is_rated_book_in_db)
+        is_rated_book_in_db = is_rated_book_in_db.first()
+
+        if is_rated_book_in_db is None:
+            info_book = await get_full_info(book.lower())
+            url_orig = info_book[4][abs(book_number) % len(info_book[4])]
+            url_by_user = await get_book_attr_by_user(user.id, Book.url_orig)
+
+            if info_book[4][abs(book_number) % len(info_book[4])] not in url_by_user:
+                stmt = insert(Book).values(
+                    title=f'№{book_number}. {info_book[1]}',
+                    image=info_book[0],
+                    description=info_book[2],
+                    url_orig=url_orig,
+                    url=url,
+                    owner_id=user.id,
+                    saved_to_profile=True
+                )
+                await session.execute(stmt)
+                await session.commit()
+                return {'success': 200}
+        else:
+            stmt = update(Book).values(saved_to_profile=True).where(
+                (Book.owner_id == str(user.id)) &
+                (Book.saved_to_profile == False) & (Book.url == url))
             await session.execute(stmt)
             await session.commit()
             return {'success': 200}
-        # elif info_book[4][abs(book_number) % len(info_book[4])] in url_by_user:
-        #     stmt = update(Book).values(
-        #         saved_to_profile=True
-        #     )
-        #     await session.execute(stmt)
-        #     await session.commit()
-        #     return {'success': 200}
 
     raise HTTPException(status_code=409,
                         detail=status.HTTP_409_CONFLICT)
