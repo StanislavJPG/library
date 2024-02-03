@@ -50,3 +50,25 @@ document.querySelectorAll('.readButton').forEach(button => {
         window.open(url, '_blank');
     });
 });
+
+function saveBookFromProfile(book_id) {
+    console.log(book_id);
+  const saveUrl = `/save_back/${book_id}`;
+  const saveOptions = {
+    method: 'PUT',
+    headers: {
+      'accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  };
+
+    var isSave = confirm('Зберегти цю книгу до Вашого профілю?');
+    if (isSave) {
+      fetch(saveUrl, saveOptions)
+        .then(response => {
+          if (response.status === 200){
+              location.reload();
+          }
+      })
+    };
+}

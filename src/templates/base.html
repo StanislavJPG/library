@@ -47,31 +47,34 @@
 {% block content %}
     <div class="container-info">
         <div class="user-profile rounded">
-            <h1 class="text-muted center" style="margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
+            <h1 class="display-4 center" style="margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
             <div class="books-container" style="margin-top: 80px;">
                 {% for book in books %}
+                {% set lst = [] %}
+                {% for library_obj in library %}
+                    {% if library_obj['book_id'] == book['id'] %}
+                        {% set result = lst.append(library_obj['rating']) %}
+                    {% endif %}
+                {% endfor %}
+                {% if (lst|sum / lst|length)|round(3) >= 4 %}
                     <div class="book-info rounded">
                         <div class="book-image">
                             <img src="{{ book['image'] }}" style="width:220px;height:310px;" alt="Book hardcover">
                         </div>
                         <div class="book-details">
-                            <p><b class="title">«{{ book['title'] }}»</b></p>
-                            <p><strong class="description">{{ book['description'] }}</strong></p>
-                            {% for rating in ratings %}
-                                {% if rating['url_orig'] == book['url_orig'] %}
-                                    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
-                                    <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
-                                    {% if none not in [rating['rating'], rating['rating_count']] %}
-                                        <p class="owner-id">Середній рейтинг книги серед користувачів: {{ rating['rating'] / rating['rating_count'] }} <span class="fa fa-star icon"></span></p>
-                                        <p>Користувачів оцінило книгу: {{ rating['rating_count'] }} <i class="fa fa-user" style="color: grey;"></i></p>
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
-                            <button class="btn btn-dark" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
+                            <h1 style="font-size: 33px; margin-bottom: 25px;" class="display-4 title">{{ book['title'] }}</h1>
+                            <h6 class="description">{{ book['description'] }}</h6>
+                            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                            <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                            <hr style="height: 1px; border-width: 0 ; color: gray; background-color: gray">
+                            <p style="margin-top: 20px; font-size: 17px;" class=" owner-id">Середній рейтинг книги серед користувачів: {{ (lst|sum / lst|length)|round(3) }} <span class="fa fa-star icon"></span></p>
+                            <p style="font-size: 17px;" >Користувачів оцінило книгу: {{ lst|length }} <i class="fa fa-user" style="color: grey;"></i></p>
+                            <button class="btn btn-outline-secondary btn-sm" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
                                 Читати цю книгу
                             </button>
                         </div>
                     </div>
+                {% endif %}
                 {% endfor %}
             </div>
         </div>

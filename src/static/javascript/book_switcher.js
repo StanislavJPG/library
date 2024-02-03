@@ -72,8 +72,7 @@ function confirmRating(url, title, num) {
           fetch(ratingUrl, ratingOptions)
               .then(response => {
                   if (response.ok) {
-                      alert(`Дякуємо за оцінку!`);
-                      location.reload();
+                      alert(`Оцінку збережено!`);
                   } else {
                       alert(`Failed to confirm rating. Status: ${response.status}`);
                   }

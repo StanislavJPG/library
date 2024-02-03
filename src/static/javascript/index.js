@@ -1,32 +1,37 @@
-    const img = document.querySelector('#photo');
-    const file = document.querySelector('#file');
+const fileInput = document.querySelector('#file');
 
-    file.addEventListener('change', function () {
-        const chosenFile = this.files[0];
-        if (chosenFile) {
-            const formData = new FormData();
-            formData.append('image', chosenFile);
+fileInput.addEventListener('change', async function () {
+    const chosenFile = this.files[0];
 
-            fetch('/image', {
-                method: 'PATCH',
+    if (chosenFile) {
+        const formData = new FormData();
+        formData.append('file', chosenFile);
+
+        try {
+            const response = await fetch('/image', {
+                method: 'POST',
                 body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.Success === 200) {
-                    alert('Фото профілю успішно збережно');
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                if (responseData.status === 200) {
+                    alert('Зміни збережено');
                     location.reload();
-                    img.setAttribute('src', URL.createObjectURL(chosenFile));
+                } else {
+                    alert('Помилка збереження.');
                 }
-            })
-            .catch(error => console.error('Error:', error));
+            }
+        } catch (error) {
+            console.error('Error:', error);
         }
-    });
+    }
+});
 
 
-function deleteBook(book_title) {
-    console.log(book_title);
-  const loginUrl = `/books/${book_title}`;
+function deleteBook(book_id) {
+    console.log(book_id);
+  const loginUrl = `/books/${book_id}`;
   const loginOptions = {
     method: 'DELETE',
     headers: {

@@ -5,7 +5,7 @@
 
 #userProfile {
     border: 1px solid #ccc;
-    padding: 15px;
+    padding: 20px;
     width: 700px;
     margin: 100px;
     text-align: left;
@@ -33,6 +33,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
+    justify-content: space-evenly;
 }
 
 .search-header {
@@ -128,6 +129,8 @@
     padding: 15px;
     max-width: 480px;
     text-align: center;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 .book-details {
@@ -163,17 +166,16 @@
 }
 
 .profileImageDefaultBtn {
-    width: 27px;
-    height: 26px;
+    width: 32px;
+    height: 33px;
 }
 
 .photo{
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     margin-bottom: 15px;
-    margin-right: 10px;
-    margin-top: 15px;
+    margin-top: -10px;
 }
 
 #file{
@@ -182,9 +184,7 @@
 
 #upload-btn{
     position: absolute;
-    height: 40px;
-    width: 40px;
-    padding: 6px 6px;
+    padding: 11px 12px;
     border-radius: 50%;
     cursor: pointer;
     color: #FFF;
@@ -229,4 +229,11 @@ body {
 
 .navbar-brand {
     color: white;
+}
+
+.clickable_img {
+    cursor: pointer;
+    text-align: left;
+    flex-shrink: 0;
+    margin-right: 20px;
 }

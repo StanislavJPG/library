@@ -1,11 +1,15 @@
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
 from starlette.responses import HTMLResponse
 
-from src.auth.base_config import fastapi_users, auth_backend
+from src.auth.base_config import fastapi_users, auth_backend, current_user
+from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
+from src.database import async_session_maker
 from src.library.service import test
 from src.profile.service import test_profile
+from PIL import Image
+from sqlalchemy import update
 
 # from src.weather.router import router as router_weather
 from src.base.router import router as router_base, templates
@@ -72,10 +76,46 @@ async def handling_error_page(request: Request, page: str):
         content = templates.TemplateResponse(f'{page}.html', {'request': request})
         return content
     except Exception:
-        raise HTTPException(status_code=401, detail='Page not found')
+        raise HTTPException(status_code=404, detail='Page not found')
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code},
                                       status_code=exc.status_code)
+
+
+@app.post('/image')
+async def create_upload_file(user=Depends(current_user), file: UploadFile = File(...)):
+    filepath = str(Path(__file__).parent.parent.absolute() / "static" / "images")
+    filename = file.filename
+    file_format = filename.split('.')[1]
+
+    if file_format not in ['jpg', 'jpeg', 'png', 'tiff']:
+        return {'status': 'error', 'details': 'File format is not allowed'}
+
+    token_name = str(user.id) + '_profile_img' + '.' + 'png'
+    generated_name = filepath + '\\' + token_name
+    file_content = await file.read()
+
+    file_path = Path(generated_name)
+
+    if file_path.exists():
+        file_path.unlink()
+
+    with open(generated_name, 'wb') as file:
+        file.write(file_content)
+
+    img = Image.open(generated_name)
+    img = img.resize(size=(300, 250))
+    img.save(generated_name)
+    file.close()
+
+    async with async_session_maker() as session:
+        stmt = update(User).values(profile_image=token_name).where(
+            User.id == str(user.id)
+        )
+        await session.execute(stmt)
+        await session.commit()
+
+    return {'status': 200}

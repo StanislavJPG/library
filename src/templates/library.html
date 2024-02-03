@@ -8,12 +8,12 @@
 {% block content %}
 <div class="container">
     <div class="search-header">
-        <h1 class="text-muted">Пошук літератури українською!</h1>
+        <h1 class="display-4">Пошук літератури українською!</h1>
     </div>
 
     <div id="outPop">
         <div class="search-form">
-            <input type="text" class="form-control" id="book_id" placeholder="Введіть книжку"/>
+            <input type="text" class="form-control" style="width: 400px;" id="book_id" placeholder="Введіть книжку"/>
             <div class="center">
                 <button class="btn btn-dark" onclick="SimpleSearchForLiterature()">Пошук</button>
             </div>
@@ -21,18 +21,19 @@
 
         {% if book %}
         <div class="main-search-results">
-            <font size="+2">Ви ввели: {{ user_title }} </font>
-            <p>Результат: </p>
+            <p style="font-size: 20px;">Ви ввели: {{ user_title }} </p>
+            <p>Результат пошуку: </p>
                 <div class="search-results">
                     <div class="result-info">
-                        <font size="+3" style="font-weight: bold;">«{{ book[1] }}»</font>
-                        <br>
+                        <h1 style="font-size: 40px;" class="display-4">«{{ book[1] }}»</h1>
+                        <h6 style="margin-top: 20px;" class="description">
                         {{ book[2] }}
-                        <br>
-                        <div class="image_library">
+                        </h6>
+                        <div style="margin-top: 25px;" class="image_library">
                             <img src="{{ book[0] }}" id="book-hardcover" alt="Book hardcover">
                         </div>
                 </div>
+                <hr style="height: 1px; border-width : 0 ;color: gray; background-color: gray">
                 {% if book[3] is not none %}
                     <b>
                         <a href="mailto:samper.stas@gmail.com" style="color: red;" class="text-base font-bold">
@@ -41,9 +42,9 @@
                     </b>
                 {% endif %}
                 {% if user %}
-                <b>
+                <p style="font-size: 17px;">
                     Якщо бажаєте читати книги швидко, та не шукати їх знову - зберігайте до вашого профілю!
-                </b>
+                </p>
                 {% else %}
                 <b>
                     Якщо бажаєте читати книги швидко, та не шукати їх знову - <a style="text-decoration: underline; color: black;" href="http://127.0.0.1:8000/login">Авторизуйтесь</a> та зберігайте їх до вашого профілю!

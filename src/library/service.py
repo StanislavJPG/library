@@ -1,13 +1,14 @@
 import httpx
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup as B_soup
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import insert, select, update
 from typing import Type
 
-from src.auth.base_config import current_optional_user
+from src.auth.base_config import current_optional_user, current_user
+from src.auth.schemas import UserRead
 from src.config import DEFAULT_IMAGE
 from src.database import async_session_maker
-from src.library.models import Book, BookRating
+from src.library.models import Book, Library  # , BookRating
 from fastapi import status
 
 test = APIRouter(
@@ -22,12 +23,11 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
 search_pattern = 'https://www.google.com/search?q='
 
 
-@test.get('/test/header')
 async def specific_search(book: str):
     async with httpx.AsyncClient() as client:
         url_wiki = search_pattern + f'книга {book} site:uk.wikipedia.org'
         response_wiki = await client.get(url_wiki, headers=headers)
-        bs_wiki = BS(response_wiki.text, 'lxml')
+        bs_wiki = B_soup(response_wiki.text, 'lxml')
         data_wiki = bs_wiki.find_all('div', class_='MjjYud')
 
         for i, wiki_el in enumerate(data_wiki):
@@ -35,7 +35,7 @@ async def specific_search(book: str):
                 full_info = wiki_el.find('a').get('href')
                 page = await client.get(full_info, headers=headers)
 
-    soup = BS(page.text, 'html.parser')
+    soup = B_soup(page.text, 'html.parser')
 
     title = soup.find('span', class_='mw-page-title-main').text
     description = soup.find('p')
@@ -56,7 +56,7 @@ async def modified_book_getter(book: str):
 
         for url in urls_queries_lst:
             response_text = await client.get(url, headers=headers)
-            bs = BS(response_text.text, 'lxml')
+            bs = B_soup(response_text.text, 'lxml')
             data_book = bs.find_all('div', class_='MjjYud')
             scraper_result.append(data_book)
 
@@ -88,13 +88,13 @@ async def modified_book_getter(book: str):
         return [sorted(list(lst_book), reverse=True), full_info]
 
 
-async def get_page(url) -> BS:
+async def get_page(url) -> B_soup:
     async with httpx.AsyncClient() as client:
         page = await client.get(url)
-        soup = BS(page.content, 'html.parser')
+        soup = B_soup(page.content, 'html.parser')
         return soup
 
-@test.get('/test/lp/{book}')
+
 async def get_full_info(book: str):
     urls = await modified_book_getter(book)
     page = await get_page(urls[1])
@@ -112,53 +112,59 @@ async def get_full_info(book: str):
     return image, title, description.text, None, urls[:-1][0]
 
 
-async def get_book_attr_by_user(user_id: str, book: Type[Book]):
+async def save_book_db(book: str, num: int, user=Depends(current_user)):
     async with async_session_maker() as session:
-        stmt = select(book).where(Book.owner_id == user_id)
-        current_user_book = await session.scalars(stmt)
-        url_by_user = current_user_book.all()
-        return url_by_user
+        url = f'http://127.0.0.1:8000/read/{book.lower()}?num={num}'
+        stmt_is_book_exists = await session.scalars(select(Book.id).where(Book.url == url))
+        is_book_exists_in_db = stmt_is_book_exists.first()
 
-
-async def save_book_to_database(book: str, book_number: int, user=Depends(current_optional_user)):
-    url = f'http://127.0.0.1:8000/read/{book.lower()}?num={book_number}'
-
-    stmt_is_rated_book_in_db = select(Book).where(
-        (Book.owner_id == str(user.id)) &
-        (Book.saved_to_profile == False) & (Book.url == url))
-
-    async with async_session_maker() as session:
-        is_rated_book_in_db = await session.scalars(stmt_is_rated_book_in_db)
-        is_rated_book_in_db = is_rated_book_in_db.first()
-
-        if is_rated_book_in_db is None:
+        if is_book_exists_in_db is None:
             info_book = await get_full_info(book.lower())
-            url_orig = info_book[4][abs(book_number) % len(info_book[4])]
-            url_by_user = await get_book_attr_by_user(user.id, Book.url_orig)
+            url_orig = info_book[4][abs(num) % len(info_book[4])]
 
-            if info_book[4][abs(book_number) % len(info_book[4])] not in url_by_user:
-                stmt = insert(Book).values(
-                    title=f'№{book_number}. {info_book[1]}',
-                    image=info_book[0],
-                    description=info_book[2],
-                    url_orig=url_orig,
-                    url=url,
-                    owner_id=user.id,
-                    saved_to_profile=True
-                )
-                await session.execute(stmt)
-                await session.commit()
-                return {'success': 200}
+            stmt_save = insert(Book).values(
+                title=f'№{num}. «{info_book[1]}»',
+                image=info_book[0],
+                description=info_book[2],
+                url_orig=url_orig,
+                url=url,
+            )
+            await session.execute(stmt_save)
+
+            stmt_is_book_exists = await session.scalars(select(Book.id).where(Book.url == url))
+            book_id = stmt_is_book_exists.first()
+
+            stmt = insert(Library).values(
+                user_id=user.id,
+                book_id=book_id,
+                rating=None,
+                is_saved_to_profile=True
+            )
+
         else:
-            stmt = update(Book).values(saved_to_profile=True).where(
-                (Book.owner_id == str(user.id)) &
-                (Book.saved_to_profile == False) & (Book.url == url))
-            await session.execute(stmt)
-            await session.commit()
-            return {'success': 200}
+            is_book_exists_by_user = await session.scalars(select(Library.is_saved_to_profile).where(
+                (Library.user_id == str(user.id)) & (Library.book_id == is_book_exists_in_db)
+            ))
+            is_book_exists_by_user = is_book_exists_by_user.first()
 
-    raise HTTPException(status_code=409,
-                        detail=status.HTTP_409_CONFLICT)
+            if is_book_exists_by_user is None:
+                stmt = insert(Library).values(
+                    user_id=user.id,
+                    book_id=is_book_exists_in_db,
+                    rating=None,
+                    is_saved_to_profile=True
+                )
+            else:
+                if is_book_exists_by_user is False:
+                    stmt = update(Library).values(is_saved_to_profile=True).where(
+                        (Library.user_id == str(user.id)) & (Library.book_id == is_book_exists_in_db)
+                    )
+                else:
+                    raise HTTPException(status_code=409, detail=status.HTTP_409_CONFLICT)
+
+        await session.execute(stmt)
+        await session.commit()
+        raise HTTPException(status_code=200, detail=status.HTTP_200_OK)
 
 
 async def book_url_getter_to_read(literature: str, num: int):
@@ -167,19 +173,21 @@ async def book_url_getter_to_read(literature: str, num: int):
     book = info_book[4][abs(num) % len(info_book[4])]
     # it's important if user trying to read more books than exists atm
 
-    return book
+    return info_book, book
 
 
 async def reader_session_by_user(literature: str, num: int):
     url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
+    # this endpoint useful for keeping "DRY"
 
     async with async_session_maker() as session:
-        stmt = select(BookRating.url_orig).where(
-            BookRating.url == url_from_current_cite)
+        stmt = select(Book.url_orig).where(
+            Book.url == url_from_current_cite)
         book_session = await session.scalars(stmt)
         book = book_session.first()
 
         if book is None:
-            book = await book_url_getter_to_read(literature, num)
+            book_func = await book_url_getter_to_read(literature, num)
+            book = book_func[-1]
 
     return book

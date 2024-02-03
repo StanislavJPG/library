@@ -1,7 +1,6 @@
 from uuid import uuid4
-
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Column, String,  Boolean
+from sqlalchemy import Column, String, Boolean
 from sqlalchemy.orm import relationship
 
 from src.database import Base
@@ -18,4 +17,4 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     profile_image = Column(String)
 
-    items = relationship("Book", back_populates="owner")
+    libraries = relationship("Library", back_populates="user")

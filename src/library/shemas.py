@@ -15,16 +15,13 @@ class BookCreate(BaseModel):
     user_rating: int
 
 
-class BookRating(BaseModel):
-    __tablename__ = "rating"
+class Library(BaseModel):
+    __tablename__ = "library"
 
-    id: int
-    url_orig: str
-    title: str
-    image: str
-    description: str
-    rating: int
-    rating_counter: int
+    user_id: uuid.UUID
+    book_id: str
+    rating: float
+    is_saved_to_profile: bool
 
 
 class RatingService(BaseModel):
