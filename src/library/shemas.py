@@ -6,13 +6,12 @@ from pydantic import BaseModel, conint
 class BookCreate(BaseModel):
     __tablename__ = "book"
 
-    id: uuid.UUID
+    id: int
     title: str
+    image: str
     description: str
     url: str
     url_orig: str
-    owner_id: int
-    user_rating: int
 
 
 class Library(BaseModel):

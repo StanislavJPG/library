@@ -9,7 +9,7 @@ from src.library.service import get_full_info, save_book_db, reader_session_by_u
 from src.library.shemas import RatingService
 
 router = APIRouter(
-    tags=['Library_page']
+    tags=['library_page']
 )
 
 

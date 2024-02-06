@@ -71,17 +71,17 @@ app.include_router(
 
 
 @app.get('/{page}', response_class=HTMLResponse)
-async def handling_error_page(request: Request, page: str):
+async def handling_error_page(request: Request, page: str, user=Depends(current_user)):
     try:
-        content = templates.TemplateResponse(f'{page}.html', {'request': request})
+        content = templates.TemplateResponse(f'{page}.html', {'request': request, 'user': user})
         return content
     except Exception:
         raise HTTPException(status_code=404, detail='Page not found')
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code},
+async def http_exception_handler(request: Request, exc: HTTPException, user=Depends(current_user)):
+    return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
                                       status_code=exc.status_code)
 
 

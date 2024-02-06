@@ -34,7 +34,7 @@ async def weather(city):
 
 @router.get('/weather')
 def get_weather_page(request: Request,
-                           user=Depends(current_optional_user)):
+                     user=Depends(current_optional_user)):
     return templates.TemplateResponse(
         'weather.html',
         {'request': request, 'user': user}

@@ -5,7 +5,7 @@ from src.base.router import templates
 
 
 router = APIRouter(
-    tags=['Auth_page']
+    tags=['auth_page']
 )
 
 

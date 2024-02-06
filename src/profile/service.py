@@ -1,31 +1,24 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import select, update, delete, and_
-from src.auth.base_config import current_optional_user, current_user
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select, update, delete
+from src.auth.base_config import current_user
 from src.auth.models import User
 from src.database import async_session_maker
 from src.library.models import Book, Library
+
 
 test_profile = APIRouter(
     tags=['Profile_test']
 )
 
 
-# async def view_all_users_books(user=Depends(current_user)):
-#     async with async_session_maker() as session:
-#         select_book = select(Library.book_id).where(
-#             (Library.user_id == str(user.id)) & (Library.is_saved_to_profile.is_(True))
-#         )
-#         current_user_book = await session.scalars(select_book)
-#         all_books_info_from_db = current_user_book.all()
-#
-#         if all_books_info_from_db is not None:
-#             stmt = await session.scalars(select(Book).where(
-#                 Book.id.in_(all_books_info_from_db))
-#             )
-#         return stmt.all()
+async def view_profile_information(user=Depends(current_user)) -> dict:
+    """
+    1. This is really powerful function that returns all the books that ain't saved to profile
+    but this books has it own ratings by user
+    2. It returns user's profile image
+    3. It returns all library columns by current user
+    """
 
-
-async def view_profile(user=Depends(current_user)):
     async with async_session_maker() as session:
         profile_image_query = select(User.profile_image
                                      ).where(User.id == str(user.id))
@@ -45,9 +38,9 @@ async def view_profile(user=Depends(current_user)):
 
         query_books_not_in_profile = await session.scalars(select(Book).where(
             Book.id.in_(books_ids)
-        ))   # finally getting books that user not saved to the profile but still has rating of it
+        ).limit(5))   # finally getting books that user not saved to the profile but still has rating of it
         books_not_in_profile = query_books_not_in_profile.all()
-    return books_not_in_profile, profile_image, library
+    return {'books': books_not_in_profile, 'image': profile_image, 'library': library}
 
 
 async def delete_book(book_id: int, user=Depends(current_user)):
@@ -85,23 +78,38 @@ async def delete_book(book_id: int, user=Depends(current_user)):
         await session.commit()
 
 
-async def view_books(book_name: str = None, user=Depends(current_user)):
+async def view_books(book_name: str, page: int = 1, user: User = current_user, per_page: int = 3) -> dict:
     async with async_session_maker() as session:
+        """
+        Here I am implementing function that will view all books that user ever saved
+        view_books() finding all user's books from database by its ID and is_saved_to_profile column 
+        (func )
+        """
+
         query_get_specific_book_id = await session.scalars(select(Library.book_id).where(
             (Library.user_id == str(user.id)) & (Library.is_saved_to_profile.is_(True))
         ))
         specific_book_id = query_get_specific_book_id.all()
 
+        if page > 0:
+            offset = (page - 1) * per_page
+        else:
+            raise HTTPException(status_code=403, detail={'Error': 'Forbidden'})
+
         if book_name is None:
-            # if book_name is None(by default), is shows all the user's books
+            # if book_name is None(by default), it shows all the user's books
             query_get_book = await session.scalars(select(Book).where(
-                (Book.id.in_(specific_book_id))))
+                (Book.id.in_(specific_book_id))).offset(offset).limit(per_page))
+
+            # offset here means "skip first {offset} rows and show all rows next to it"
+            # limit will always keep showing only 3 books in page
+
         else:
             # in any others cases it shows books, that user is looking for
-
             query_get_book = await session.scalars(select(Book).where(
-                (Book.id.in_(specific_book_id) & (Book.title.like(f'%{book_name}%'))
-                 )))
-        book = query_get_book.all()
-        return book
+                (Book.id.in_(specific_book_id) & (Book.title.like(f'%{book_name}%')))
+            ).offset(offset).limit(per_page))
 
+        books = query_get_book.all()
+
+        return {'books': books, 'page': page}

@@ -8,7 +8,7 @@ from src.database import async_session_maker
 from src.library.models import Library
 
 router = APIRouter(
-    tags=['Base_page']
+    tags=['base_page']
 )
 
 templates = Jinja2Templates(directory='src/templates')

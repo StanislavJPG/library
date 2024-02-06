@@ -47,7 +47,7 @@
 {% block content %}
     <div class="container-info">
         <div class="user-profile rounded">
-            <h1 class="display-4 center" style="margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
+            <h1 class="display-4 center" style="font-size: 45px; margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
             <div class="books-container" style="margin-top: 80px;">
                 {% for book in books %}
                 {% set lst = [] %}
@@ -59,7 +59,7 @@
                 {% if (lst|sum / lst|length)|round(3) >= 4 %}
                     <div class="book-info rounded">
                         <div class="book-image">
-                            <img src="{{ book['image'] }}" style="width:220px;height:310px;" alt="Book hardcover">
+                            <img src="{{ book['image'] }}" style="width:165px;height:240px;" alt="Book hardcover">
                         </div>
                         <div class="book-details">
                             <h1 style="font-size: 33px; margin-bottom: 25px;" class="display-4 title">{{ book['title'] }}</h1>
