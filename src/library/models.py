@@ -29,7 +29,7 @@ class Library(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), primary_key=True)
     book_id = Column(Integer, ForeignKey(Book.id), primary_key=True)
-    rating = Column(Float)
+    rating = Column(Integer)
     is_saved_to_profile = Column(Boolean)
 
     book = relationship("Book", back_populates="libraries")

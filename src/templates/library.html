@@ -20,39 +20,32 @@
         </div>
 
         {% if book %}
-        <div class="main-search-results">
-            <p style="font-size: 20px;">Ви ввели: {{ user_title }} </p>
-            <p>Результат пошуку: </p>
+        <div class="main-search-results" style="margin-bottom: 80px;">
+            <h1 class="display-4" style="font-size: 20px; margin-top: 10px;">Ви ввели: {{ user_title }} </h1>
+            <h1 class="display-4" style="font-size: 25px; margin-top: 30px;">Результів пошуку: {{ book['urls']|length }} </h1>
                 <div class="search-results">
                     <div class="result-info">
-                        <h1 style="font-size: 40px;" class="display-4">«{{ book[1] }}»</h1>
-                        <h6 style="margin-top: 20px;" class="description">
-                        {{ book[2] }}
-                        </h6>
-                        <div style="margin-top: 25px;" class="image_library">
-                            <img src="{{ book[0] }}" id="book-hardcover" alt="Book hardcover">
+                        <h1 style="font-size: 40px;" class="display-4">«{{ book['title'] }}»</h1>
+                        <h1 style="margin-top: 20px; font-size: 20px;" class="display-4">
+                        {{ book['description'] }}
+                        </h1>
+                        <div style="margin-top: 25px; cursor: pointer;" class="readButton">
+                            <img src="{{ book['image'] }}" id="book-hardcover" alt="Book hardcover">
                         </div>
                 </div>
                 <hr style="height: 1px; border-width : 0 ;color: gray; background-color: gray">
-                {% if book[3] is not none %}
-                    <b>
-                        <a href="mailto:samper.stas@gmail.com" style="color: red;" class="text-base font-bold">
-                            {{ book[3] }}
-                        </a>
-                    </b>
-                {% endif %}
                 {% if user %}
-                <p style="font-size: 17px;">
-                    Якщо бажаєте читати книги швидко, та не шукати їх знову - зберігайте до вашого профілю!
+                <p class="h6">
+                    Якщо бажаєте читати книги швидко, та не шукати їх знову - зберігайте їх до вашого профілю!
                 </p>
                 {% else %}
-                <b>
+                <p class="h6">
                     Якщо бажаєте читати книги швидко, та не шукати їх знову - <a style="text-decoration: underline; color: black;" href="http://127.0.0.1:8000/login">Авторизуйтесь</a> та зберігайте їх до вашого профілю!
-                </b>
+                </p>
                 {% endif %}
 
-                <div class="button-container">
-                    <b class="btn btn-dark readButton">Читати книгу «{{ book[1] }}»</b>
+                <div class="button-container" style="margin-bottom: 18px;">
+                    <b class="btn btn-dark readButton" style="width: 400px;">Читати книги «{{ book['title'] }}»</b>
                 </div>
                     <script src="/static/javascript/save_db_script.js"></script>
             </div>

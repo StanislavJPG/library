@@ -81,11 +81,9 @@ async def delete_book(book_id: int, user=Depends(current_user)):
 async def view_books(book_name: str, page: int = 1, user: User = current_user, per_page: int = 3) -> dict:
     async with async_session_maker() as session:
         """
-        Here I am implementing function that will view all books that user ever saved
-        view_books() finding all user's books from database by its ID and is_saved_to_profile column 
-        (func )
+        Here I am implementing function that will view all books that user has ever saved
+        view_books() finding all user's books from database by its ID and is_saved_to_profile
         """
-
         query_get_specific_book_id = await session.scalars(select(Library.book_id).where(
             (Library.user_id == str(user.id)) & (Library.is_saved_to_profile.is_(True))
         ))
@@ -107,7 +105,7 @@ async def view_books(book_name: str, page: int = 1, user: User = current_user, p
         else:
             # in any others cases it shows books, that user is looking for
             query_get_book = await session.scalars(select(Book).where(
-                (Book.id.in_(specific_book_id) & (Book.title.like(f'%{book_name}%')))
+                (Book.id.in_(specific_book_id) & (Book.title.like(f'%{book_name[1:]}%')))
             ).offset(offset).limit(per_page))
 
         books = query_get_book.all()

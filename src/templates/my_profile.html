@@ -5,46 +5,45 @@
 {% endblock %}
 
 {% block content %}
-{% if user %}
-    <div id="userProfile" style="margin-left: 130px;" class="rounded">
-        <div class="profileImage">
-            {% if profile_image is not none %}
-            <img src="http://127.0.0.1:8000/static/images/{{ profile_image }}" class="uploadButton photo">
-            {% else %}
-            <img src="{{ url_for('static', path='/img/capture.png') }}" class="uploadButton photo">
-            {% endif %}
-            <input type="file" id="file">
-            <label for="file" id="upload-btn"><img class="profileImageDefaultBtn" src="{{ url_for('static', path='/img/user.png') }}"></label>
-            <script src="/static/javascript/index.js"></script>
-        </div>
-        <div>
-            <h1 class="text-muted">{{ user.username }}</h1>
-            <p><strong>Пошта:</strong> {{ user.email }}</p>
-            {% if user.is_verified %}
-            <strong>Пошта підтверджена</strong>
-            {% else %}
-            <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
-            <div id="popupContainer" class="popup-container">
-                <div class="popup-content">
-                    <span class="close" id="closePopup">&times;</span>
-                    <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
-                    <div style="text-align: center;">
-                        <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти"></input>
-                        <div style="margin-top: 10px;">
-                        <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
-                                onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
-                        </div>
-                        <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
-                        <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
+<div id="userProfile" style="margin-left: 650px;" class="rounded">
+    <div class="profileImage">
+        {% if profile_image is not none %}
+        <img src="http://127.0.0.1:8000/static/images/{{ profile_image }}" class="uploadButton photo">
+        {% else %}
+        <img src="{{ url_for('static', path='/img/capture.png') }}" class="uploadButton photo">
+        {% endif %}
+        <input type="file" id="file">
+        <label for="file" id="upload-btn"><img class="profileImageDefaultBtn" src="{{ url_for('static', path='/img/user.png') }}"></label>
+        <script src="/static/javascript/index.js"></script>
+    </div>
+    <div>
+        <h1 class="text-muted">{{ user.username }}</h1>
+        <p><strong>Пошта:</strong> {{ user.email }}</p>
+        {% if user.is_verified %}
+        <strong>Пошта підтверджена</strong>
+        {% else %}
+        <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
+        <div id="popupContainer" class="popup-container">
+            <div class="popup-content">
+                <span class="close" id="closePopup">&times;</span>
+                <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
+                <div style="text-align: center;">
+                    <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти">
+                    <div style="margin-top: 10px;">
+                    <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
+                            onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
                     </div>
+                    <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
+                    <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
                 </div>
             </div>
-
-            {% endif %}
         </div>
-    </div>
 
-<div class="container_info">
+        {% endif %}
+    </div>
+</div>
+
+<div class="container_info" style="justify-content: center;">
     <div class="userProfile rounded" style="text-align: center;">
         <div class="search-form">
             <script>
@@ -67,9 +66,11 @@
         </div>
             <div class="books-container">
                 {% for book in books_in_profile %}
-                    <div class="book-info rounded" style="max-width: 800px;">
+                    <div class="book-info rounded" style="width: 800px;">
                         <div>
-                            <img src="{{ book['image'] }}" alt="Book hardcover" style="width:180px;height:260px;">
+                            <div style="text-align: center;" class="clickable_img" onclick="window.open('{{ book['url'] }}')">
+                                <img src="{{ book['image'] }}" alt="Book hardcover" style="width:180px;height:260px;">
+                            </div>
                         </div>
                         <div class="book-details">
                             <h1 style="font-size: 28px;" class="display-4">{{ book['title'] }}</h1>
@@ -107,50 +108,47 @@
             <button onclick="window.location.href = `/profile?page={{ page - 1 }}`" class="btn btn-dark btn-sm">Назад</button>
         {% endif %}
         {% endif %}
-        </div>
-        <div class="userProfile rounded">
-            <div class="search-form">
-                <div class="center">
-                    <h1 style="font-size: 40px; margin-bottom: 15px;" class="display-4">Ви оцінили</h1>
-                    <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Останні 5 книг:</h1>
-                </div>
+    </div>
+    <div class="userProfile rounded">
+        <div class="search-form">
+            <div class="center">
+                <h1 style="font-size: 40px; margin-bottom: 15px;" class="display-4">Історія оцінок книг</h1>
+                {% if books_not_in_profile|length != 0 %}
+                <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Останні 5 книг:</h1>
             </div>
-            <div style="flex-direction: column; display: flex;">
-                <div class="book-details">
-                    {% for book in books_not_in_profile %}
-                        <div class="book-info rounded" style="margin-bottom: 20px; max-width: 1000px; display: flex; justify-content: center;">
-                            <div class="clickable_img" onclick="window.open('{{ book['url'] }}')">
-                                <img src="{{ book['image'] }}" alt="Book hardcover" style="padding:10px;width:140px;height:190px;">
-                            </div>
-                            <div class="book-details" style="text-align: center;">
-                                <h1 style="font-size: 28px;" class="display-4">{{ book['title'] }}</h1>
-                                <div style="margin-top: 15px;">
-                                    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
-                                    <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
-                                    {% set lst = [] %}
-                                    {% for library_obj in library %}
-                                    {% if library_obj['book_id'] == book['id'] %}
-                                        {% set result = lst.append(library_obj['rating']) %}
-                                    {% endif %}
-                                    {% endfor %}
-                                    <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ lst[0] }} <span class="fa fa-star icon"></span></p>
-                                    <button class="btn btn-outline-dark btn-sm" onclick="saveBookFromProfile('{{ book['id'] }}')">Зберегти цю книгу до мого профілю</button>
-                                    <button onclick='' class="btn btn-outline-dark btn-sm">Змінити рейтинг книги</button>
-                                    <p style="margin-top: 10px;"><button onclick='deleteBook("{{ book["id"] }}")' class="btn btn-outline-secondary btn-sm">Видалити книгу повністю (Ваша оцінка книги онулюється)</button></p>
-                                    <script src="/static/javascript/save_db_script.js"></script>
-                                </div>
-                                <script src="/static/javascript/index.js"></script>
-                            </div>
+        </div>
+        <div style="flex-direction: column; display: flex;">
+            <div class="book-details">
+                {% for book in books_not_in_profile %}
+                    <div class="book-info rounded" style="margin-bottom: 20px; width: 750px; display: flex; justify-content: center;">
+                        <div class="clickable_img" onclick="window.open('{{ book['url'] }}')">
+                            <img src="{{ book['image'] }}" alt="Book hardcover" style="padding:10px;width:140px;height:190px;">
                         </div>
-                    {% endfor %}
-                </div>
+                        <div class="book-details" style="text-align: center;">
+                            <h1 style="font-size: 28px;" class="display-4">{{ book['title'] }}</h1>
+                            <div style="margin-top: 15px;">
+                                <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
+                                <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
+                                {% set lst = [] %}
+                                {% for library_obj in library %}
+                                {% if library_obj['book_id'] == book['id'] %}
+                                    {% set result = lst.append(library_obj['rating']) %}
+                                {% endif %}
+                                {% endfor %}
+                                <p style="font-size: 17px;">Ви оцінили цю книгу на: {{ lst[0] }} <span class="fa fa-star icon"></span></p>
+                                <button class="btn btn-outline-dark btn-sm" onclick="saveBookFromProfile('{{ book['id'] }}')">Зберегти цю книгу до мого профілю</button>
+                                <p style="margin-top: 10px;"><button onclick='deleteBook("{{ book["id"] }}")' class="btn btn-outline-secondary btn-sm">Видалити цю книгу повністю (Ваша оцінка книги онулюється)</button></p>
+                                <script src="/static/javascript/save_db_script.js"></script>
+                            </div>
+                            <script src="/static/javascript/index.js"></script>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% else %}
+                    <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Історія книг порожня</h1>
+                {% endif %}
             </div>
         </div>
     </div>
-{% else %}
-    <div style="margin-top: 350px; text-align: center; font-size: 40px;">
-        <b style="font-style: oblique;">Оп-ля... <img src="/static/img/error.png" style="width: 170px;"></b>
-        <p style="font-weight: bold; font-style: oblique;">401...</p>
-    </div>
-{% endif %}
+</div>
 {% endblock %}

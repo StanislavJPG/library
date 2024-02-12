@@ -4,7 +4,6 @@ document.querySelectorAll('.saveButton').forEach(button => {
     button.addEventListener('click', () => {
         const bookIndex = button.getAttribute('data-book-index');
 
-
         let isSave = confirm('Ви бажаєте зберегти цю книгу до Вашого профілю?');
         if (isSave) {
             alert('Зачекайте, книга зберігається до вашого профілю...');
@@ -28,9 +27,12 @@ document.querySelectorAll('.saveButton').forEach(button => {
             .catch(error => {
                 alert('Помилка збереження книги.');
             });
+            const currentURL = window.location.href;
+            getURL(currentURL);
         }
     });
 });
+
 
 document.querySelectorAll('.Button').forEach(button => {
     button.addEventListener('click', () => {

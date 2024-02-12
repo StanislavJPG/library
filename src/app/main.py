@@ -2,7 +2,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
 from starlette.responses import HTMLResponse
 
-from src.auth.base_config import fastapi_users, auth_backend, current_user
+from src.auth.base_config import fastapi_users, auth_backend, current_user, current_optional_user
 from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.database import async_session_maker
@@ -71,7 +71,7 @@ app.include_router(
 
 
 @app.get('/{page}', response_class=HTMLResponse)
-async def handling_error_page(request: Request, page: str, user=Depends(current_user)):
+async def handling_error_page(request: Request, page: str, user=Depends(current_optional_user)):
     try:
         content = templates.TemplateResponse(f'{page}.html', {'request': request, 'user': user})
         return content
@@ -80,9 +80,13 @@ async def handling_error_page(request: Request, page: str, user=Depends(current_
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException, user=Depends(current_user)):
-    return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
-                                      status_code=exc.status_code)
+async def http_exception_handler(request: Request, exc: HTTPException, user=Depends(current_optional_user)):
+    if not user:
+        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
+                                          status_code=exc.status_code)
+    else:
+        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code},
+                                          status_code=exc.status_code)
 
 
 @app.post('/image')

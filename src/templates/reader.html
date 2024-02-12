@@ -41,7 +41,12 @@
 <script src="/static/javascript/book_switcher.js"></script>
 {% if user %}
     <div class="rating" style="margin-bottom: 50px;">
+      {% if rating is not none %}
+      <b style="color: white; padding-right: 20px;">Ваш поточний рейтинг цієї книги: {{ rating }}
+      <span class="fa fa-star icon"></span>.</b>
+      {% else %}
       <b style="color: white; padding-right: 20px;">Спободалась книга? Оцініть її зірками, щоб інші теж зацінили! :)</b>
+      {% endif %}
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
       <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
 
