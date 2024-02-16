@@ -90,7 +90,7 @@ async def view_books(book_name: str, page: int = 1, user: User = current_user, p
         specific_book_id = query_get_specific_book_id.all()
 
         if page > 0:
-            offset = (page - 1) * per_page
+            offset = (page - 1) * 3
         else:
             raise HTTPException(status_code=403, detail={'Error': 'Forbidden'})
 

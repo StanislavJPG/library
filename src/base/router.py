@@ -2,7 +2,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy import update
 
-from src.auth.base_config import current_optional_user
+from src.auth.base_config import current_optional_user, current_superuser
 from src.base.service import get_top_books
 from src.database import async_session_maker
 from src.library.models import Library

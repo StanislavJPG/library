@@ -18,6 +18,9 @@
     </div>
     <div>
         <h1 class="text-muted">{{ user.username }}</h1>
+        {% if admin %}
+             <button onclick="window.location.href = '/admin_panel'" class="btn btn-dark btn-sm" style="margin-bottom: 10px;">Адмінка</button>
+        {% endif %}
         <p><strong>Пошта:</strong> {{ user.email }}</p>
         {% if user.is_verified %}
         <strong>Пошта підтверджена</strong>

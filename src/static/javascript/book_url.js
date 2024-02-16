@@ -7,4 +7,3 @@ const searchForWeather = () => {
     const searchInputValue = document.getElementById("city_id").value;
     window.location.href = `/weather/${searchInputValue}/`;
         }
-

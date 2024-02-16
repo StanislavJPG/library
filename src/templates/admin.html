@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link href="{{ url_for('static', path='/css/auth.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html">
+<title>Admin panel</title>
+<script src="/static/javascript/admin.js"></script>
+<style>
+.admin-panel {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: baseline;
+    padding: 90px;
+}
+
+.create-book-section,
+.latest-requests-section {
+    flex-basis: 45%; /* Adjust the width of each section as needed */
+}
+
+.create-book-section {
+    margin-top: 90px;
+    text-align: center;
+}
+
+.create-book-form {
+    width: 500px;
+    text-align: left;
+    margin: 0 auto;
+}
+
+.latest-requests-section {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.latest-requests {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.requests-list {
+    margin-right: 150px;
+}
+
+.book-request {
+    margin-right: -130px;
+    font-size: 20px;
+}
+
+.form-control {
+    margin-bottom: 10px;
+}
+
+
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+<h1 class="display-4" style="text-align: center; margin-top: 50px;">Привіт, {{ admin.username }}!</h1>
+<div class="admin-panel">
+    <div class="create-book-section">
+        <h1 class="display-4">Створити книгу по запиту:</h1>
+        <div class="create-book-form">
+            <form>
+                <input type="number" id="id" class="form-control" placeholder="Введи ID книги, котру хочеш додати до БД" required>
+                <div style="text-align: center;">
+                    <p style="font-size: 20px; margin-top: 20px;">А тепер знаходь PDF та URL книги :)</p>
+                    <p style="margin-top: -10px;">(Не забудь про title)</p>
+                </div>
+                <input type="text" id="title" class="form-control" placeholder="title" required>
+                <textarea id="description" class="form-control" placeholder="description" required></textarea>
+                <input type="text" id="url" class="form-control" placeholder="url" required>
+                <input type="text" id="url_orig" class="form-control" placeholder="url_orig" required>
+                <div style="text-align: center;">
+                <button type="button" onclick="BookCreate(
+                    document.getElementById('id').value,
+                    document.getElementById('title').value,
+                    document.getElementById('description').value,
+                    document.getElementById('url').value,
+                    document.getElementById('url_orig').value,
+                    {{ page|int }})"
+                    class="btn btn-dark">Створити книгу в базі данних</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="latest-requests-section">
+        <h1 class="display-4">Останні запити клієнтів:</h1>
+        <div class="latest-requests">
+            <div class="requests-list" style="text-align: -webkit-center;">
+                {% for book in books_request %}
+                <div class="book-request" style="width: 400px; border: 2px solid #ccc; margin-bottom: 15px;">
+                    <p><b>ID:</b> {{ book['id'] }}, <b>Title:</b> {{ book['title'] }}</p>
+                    <img src="{{ book['image'] }}" alt="Book hardcover" style="padding:10px;width:140px;height:190px;">
+                </div>
+                {% endfor %}
+            </div>
+            {% if page > 1 %}
+                <button onclick="window.location.href=`/admin_panel?page={{ page - 1 }}`" class="btn btn-dark">Назад</button>
+            {% endif %}
+            {% if books_request|length == 4 %}
+                <button onclick="window.location.href=`/admin_panel?page={{ page + 1 }}`" class="btn btn-dark">Далі</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

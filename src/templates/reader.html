@@ -13,7 +13,10 @@
     }
   </style>
 </head>
+{% block body_style %}
 <body style="background-color:#323639; overflow: hidden;">
+{% endblock %}
+
 <div class="body">
 
   <button id="Back" class="btn btn-light btn-sm" onclick="incrementNum_back()">⠺ Попередній варіант книги</button>
@@ -24,13 +27,11 @@
   <script src="/static/javascript/save_db_script.js"></script>
   <button id="Next" class="btn btn-light btn-sm" onclick="incrementNum()">Наступний варіант книги ⠗</button>
   <script src="/static/javascript/book_switcher.js"></script>
-
   <div style="margin-top: 5px;">
     <button class="btn btn-secondary btn-sm Button" style="width: 400px;" onclick="window.open('{{ book }}', '_blank')">⠵ Не працює книга на сайті? - читайте її з джерела!</button>
   </div>
-
+{% block body %}
 </div>
-
 <embed
     id="pdfEmbed"
     src="{{ book }}"
@@ -38,6 +39,7 @@
     width="100%"
     height="803px"
 />
+{% endblock %}
 <script src="/static/javascript/book_switcher.js"></script>
 {% if user %}
     <div class="rating" style="margin-bottom: 50px;">

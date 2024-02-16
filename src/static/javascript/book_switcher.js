@@ -79,3 +79,4 @@ function confirmRating(url, title, num) {
               })
         }
     }
+

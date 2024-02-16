@@ -55,7 +55,7 @@ async def save_book_page(request: Request, literature: str,
 @router.get('/read/{literature}')
 async def get_read_page(request: Request, literature: str,
                         num: int = Query(..., description='Number', gt=0),
-                        user=Depends(current_optional_user),):
+                        user=Depends(current_optional_user)):
     book = await reader_session_by_user(literature, num)
     async with async_session_maker() as session:
         """
@@ -64,9 +64,12 @@ async def get_read_page(request: Request, literature: str,
         url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
         book_id = await session.scalar(select(Book.id).where(Book.url == url_from_current_cite))
 
-        rating = await session.scalar(select(Library.rating).where(
-            (Library.user_id == str(user.id)) & (Library.book_id == book_id)
-        ))
+        if user:
+            rating = await session.scalar(select(Library.rating).where(
+                (Library.user_id == str(user.id)) & (Library.book_id == book_id)
+            ))
+        else:
+            rating = None
 
     return templates.TemplateResponse(
         'reader.html',

@@ -88,3 +88,4 @@ function registerUser(email, password, username) {
             console.error('There was a problem with the fetch operation:', error);
         });
 }
+

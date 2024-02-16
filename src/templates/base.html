@@ -13,6 +13,7 @@
     </style>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='/img/favicon.png') }}">
 </head>
+{% block body %}
 <body>
     <nav class="navbar navbar-light bg-dark">
         <a style="color: white;" href="/" class="navbar-brand">
@@ -44,6 +45,7 @@
         </div>
     </nav>
 </body>
+{% endblock %}
 {% block content %}
     <div class="container-info">
         <div class="user-profile rounded">

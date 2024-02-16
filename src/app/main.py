@@ -11,12 +11,11 @@ from src.profile.service import test_profile
 from PIL import Image
 from sqlalchemy import update
 
-# from src.weather.router import router as router_weather
 from src.base.router import router as router_base, templates
 from src.library.router import router as router_library
 from src.profile.router import router as router_profile
 from src.auth.router import router as router_auth
-
+from src.admin.router import router as router_admin
 from fastapi.staticfiles import StaticFiles
 
 
@@ -24,7 +23,7 @@ app = FastAPI(
     title='Library'
 )
 
-# app.include_router(router_weather)
+app.include_router(router_admin)
 app.include_router(router_base)
 app.include_router(router_library)
 app.include_router(router_profile)

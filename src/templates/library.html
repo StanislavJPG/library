@@ -14,6 +14,7 @@
     <div id="outPop">
         <div class="search-form">
             <input type="text" class="form-control" style="width: 400px;" id="book_id" placeholder="Введіть книжку"/>
+            <h1 class="display-4" style="font-size: 15px; margin-bottom: 15px; margin-top: 15px;">Так, як сайт новий - можлива відсутність результату пошуку.</h1>
             <div class="center">
                 <button class="btn btn-dark" onclick="SimpleSearchForLiterature()">Пошук</button>
             </div>
@@ -23,15 +24,27 @@
         <div class="main-search-results" style="margin-bottom: 80px;">
             <h1 class="display-4" style="font-size: 20px; margin-top: 10px;">Ви ввели: {{ user_title }} </h1>
             <h1 class="display-4" style="font-size: 25px; margin-top: 30px;">Результів пошуку: {{ book['urls']|length }} </h1>
+            <h1 class="display-4" style="font-size: 25px; margin-top: 30px;">Якщо Ви не знайшли книгу -
+                <button type="submit" onclick='letAdminFindBook("{{ book["title"] }}", "{{ book["image"] }}")'
+                style="margin-bottom: 10px;" class="btn btn-dark">натисність цю кнопку</button> , щоб повідомити нас про це, і ми додамо її!</h1>
+            <script src="/static/javascript/let_find_book.js"></script>
                 <div class="search-results">
                     <div class="result-info">
                         <h1 style="font-size: 40px;" class="display-4">«{{ book['title'] }}»</h1>
                         <h1 style="margin-top: 20px; font-size: 20px;" class="display-4">
                         {{ book['description'] }}
                         </h1>
+                        {% if book['urls']|length != 0%}
                         <div style="margin-top: 25px; cursor: pointer;" class="readButton">
-                            <img src="{{ book['image'] }}" id="book-hardcover" alt="Book hardcover">
+                            <div style="text-align: center;" class="clickable_img" onclick="window.open('{{ book['url'] }}')">
+                                <img src="{{ book['image'] }}" id="book-hardcover" alt="Book hardcover">
+                            </div>
                         </div>
+                        {% else %}
+                        <div class="viewBook">
+                            <img src="{{ book['image'] }}" alt="Book hardcover">
+                        </div>
+                        {% endif %}
                 </div>
                 <hr style="height: 1px; border-width : 0 ;color: gray; background-color: gray">
                 {% if user %}
@@ -43,10 +56,11 @@
                     Якщо бажаєте читати книги швидко, та не шукати їх знову - <a style="text-decoration: underline; color: black;" href="http://127.0.0.1:8000/login">Авторизуйтесь</a> та зберігайте їх до вашого профілю!
                 </p>
                 {% endif %}
-
+                {% if book['urls']|length != 0%}
                 <div class="button-container" style="margin-bottom: 18px;">
                     <b class="btn btn-dark readButton" style="width: 400px;">Читати книги «{{ book['title'] }}»</b>
                 </div>
+                {% endif %}
                     <script src="/static/javascript/save_db_script.js"></script>
             </div>
         </div>

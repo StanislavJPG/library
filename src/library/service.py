@@ -15,26 +15,24 @@ test = APIRouter(
 )
 
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-
-
-search_pattern = 'https://www.google.com/search?q='
-
-
 class BookService:
-    @staticmethod
-    async def title_search(book: str):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
+    SEARCH_PATTERN = 'https://www.google.com/search?q='
+
+    @classmethod
+    async def title_search(cls, book: str):
         async with httpx.AsyncClient() as client:
-            url_wiki = search_pattern + f'книга {book} site:uk.wikipedia.org'
-            response_wiki = await client.get(url_wiki, headers=headers)
+            url_wiki = cls.SEARCH_PATTERN + f'книга {book} site:uk.wikipedia.org'
+            response_wiki = await client.get(url_wiki, headers=cls.headers)
             bs_wiki = B_soup(response_wiki.text, 'lxml')
             data_wiki = bs_wiki.find_all('div', class_='MjjYud')
 
             for i, wiki_el in enumerate(data_wiki):
                 if i == 0:
                     full_info = wiki_el.find('a').get('href')
-                    page = await client.get(full_info, headers=headers)
+                    page = await client.get(full_info, headers=cls.headers)
         try:
             soup = B_soup(page.text, 'html.parser')
             title = soup.find('span', class_='mw-page-title-main').text
@@ -49,22 +47,22 @@ class BookService:
         This is general method that implements book search logic
         """
         async with httpx.AsyncClient() as client:
-            title_from_wiki = await cls.title_search(book)    # take book title from wiki, to extend search result
+            title_from_wiki = await cls.title_search(book)  # take book title from wiki, to extend search result
 
             urls = []
             for query in [book, title_from_wiki]:
-                search_url = search_pattern + f'читати {query} book filetype: pdf'
+                search_url = cls.SEARCH_PATTERN + f'читати {query} book filetype: pdf'
                 urls.append(search_url)
 
-            search_url_wiki = search_pattern + f'книга {title_from_wiki} site:uk.wikipedia.org'
+            search_url_wiki = cls.SEARCH_PATTERN + f'книга {title_from_wiki} site:uk.wikipedia.org'
             urls.append(search_url_wiki)
             scraper_results = []
 
             for url in urls:
-                response = await client.get(url, headers=headers)
+                response = await client.get(url, headers=cls.headers)
                 bs = B_soup(response.text, 'lxml')
                 if 'wikipedia' not in url:
-                    data_book = bs.find_all('div', class_='MjjYud', limit=5)
+                    data_book = bs.find_all('div', class_='MjjYud', limit=3)
                 else:
                     data_book = bs.find_all('div', class_='MjjYud', limit=1)
 
@@ -79,7 +77,7 @@ class BookService:
 
             async with async_session_maker() as session:
                 query_url_book = await session.scalar(select(Book.url_orig).where(
-                    Book.title.like(f'%{book[1:]}%'))
+                    Book.title.like(f'%{book.split(" ")[0][1:]}%'))
                 )
 
             if query_url_book is not None:
@@ -96,14 +94,14 @@ class BookService:
             soup = B_soup(page.content, 'html.parser')
             return soup
 
-    @staticmethod
-    async def image_getter(title: str):
+    @classmethod
+    async def image_getter(cls, title: str):
         async with httpx.AsyncClient() as client:
             image_search_pattern = 'https://images.search.yahoo.com/search/images?p='
             # yeah:) I'm getting images from yahoo:)
 
             url = image_search_pattern + f'книга {title}'
-            query = await client.get(url, headers=headers)
+            query = await client.get(url, headers=cls.headers)
             bs = B_soup(query.text, 'lxml')
 
             image_url = bs.find('img', class_='').get('src')
@@ -178,10 +176,9 @@ class DatabaseInteract:
 
             await session.execute(stmt)
             await session.commit()
-            raise HTTPException(status_code=200, detail=status.HTTP_200_OK)
 
-    @classmethod
-    async def book_id(cls, rating_schema: RatingService):
+    @staticmethod
+    async def book_id(rating_schema: RatingService):
         """
         Taking specific book id from database
         """
@@ -191,7 +188,6 @@ class DatabaseInteract:
             book_id = await session.scalar(select(Book.id).where(
                 (Book.url_orig == rating_schema.current_book_url) & (Book.url == url)
             ))
-
         return {'book_id': book_id, 'url': url}
 
     @classmethod
@@ -216,22 +212,22 @@ class DatabaseInteract:
                         rating_schema.title.lower(), rating_schema.num
                     )
                     info_book = info_book_func['info_about_book']
-                    url_orig = info_book_func['book']
 
                     stmt_save = insert(Book).values(
-                        title=f'№{rating_schema.num}. {info_book["title"]}',
+                        title=f'№{rating_schema.num}. «{info_book["title"]}»',
                         image=info_book['image'],
                         description=info_book['description'],
-                        url_orig=url_orig,
+                        url_orig=info_book_func['book'],
                         url=book['url'],
                     )
                     await session.execute(stmt_save)
+                    await session.commit()
 
-                    book = await cls.book_id(rating_schema)
+                book_new = await cls.book_id(rating_schema)
 
                 stmt = insert(Library).values(
                     user_id=user.id,
-                    book_id=book['book_id'],
+                    book_id=book_new['book_id'],
                     rating=rating_schema.user_rating,
                     is_saved_to_profile=False
                 )   # book WILL not save in profile if user set rating but DO not save a book

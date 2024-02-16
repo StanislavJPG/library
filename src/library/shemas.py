@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from pydantic import BaseModel, conint
 
@@ -6,12 +7,12 @@ from pydantic import BaseModel, conint
 class BookCreate(BaseModel):
     __tablename__ = "book"
 
-    id: int
+    id: Optional[int] = None
     title: str
-    image: str
-    description: str
-    url: str
-    url_orig: str
+    image: Optional[str] = None
+    description: Optional[str] = None
+    url: Optional[str] = None
+    url_orig: Optional[str] = None
 
 
 class Library(BaseModel):
