@@ -1,3 +1,5 @@
+import json
+import aioredis
 from typing import AsyncGenerator
 
 from fastapi import Depends
@@ -31,3 +33,22 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
+
+
+class RedisHash:
+    REDIS = aioredis.from_url('redis://localhost')
+
+    def __init__(self, value: str):
+        self.value_name = value
+
+    async def executor(self, data: dict, ex: int = None):
+        cached_data = await self.REDIS.get(self.value_name)
+        if cached_data:
+            data = json.loads(cached_data)
+            return data
+
+        await self.REDIS.close()
+
+        serialized_data = json.dumps(data)
+        await self.REDIS.set(self.value_name, serialized_data, ex=ex)
+        return data

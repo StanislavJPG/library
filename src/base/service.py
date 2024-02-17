@@ -1,11 +1,14 @@
 from sqlalchemy import select
 
-from src.database import async_session_maker
+from src.database import async_session_maker, RedisHash
 from src.library.models import Library, Book
 
 
-async def get_top_books():
+async def get_best_books():
     async with async_session_maker() as session:
+        # Redis instance with value name
+        redis = RedisHash('best_books_rating')
+
         query_lib_books_with_rating = await session.scalars(select(Library.book_id).where(
             Library.rating.is_not(None)
         ))
@@ -21,11 +24,16 @@ async def get_top_books():
 
         query_find_books = await session.scalars(select(Book).where(
             (Book.id.in_(books_with_rating) & (Book.id.notin_(books_have_no_owner)))).limit(10))
-        books = query_find_books.all()
+        books = [x.as_dict() for x in query_find_books.all()]
         # finally: get all books that has any ratings and any owners
 
         query_users_ratings_counter = await session.scalars(select(Library).where(
             Library.rating.is_not(None)
         ))
-        library = query_users_ratings_counter.all()
-    return books, library
+        library = [{k: v for k, v in entry.as_dict().items() if k != 'user_id'}
+                   for entry in query_users_ratings_counter.all()]
+
+        # executing data with redis
+        data = await redis.executor(data={'books': books, 'library': library}, ex=40)
+
+    return data

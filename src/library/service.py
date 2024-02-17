@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import insert, select, update
 
 from src.auth.base_config import current_optional_user, current_user
-from src.database import async_session_maker
+from src.database import async_session_maker, RedisHash
 from src.library.models import Book, Library
 from fastapi import status
 
@@ -240,9 +240,11 @@ async def reader_session_by_user(literature: str, num: int):
     """
     this endpoint made for keeping method "DRY"
     """
-    url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
-
     async with async_session_maker() as session:
+        redis = RedisHash(f'{literature.lower()}.{num}')
+
+        url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
+
         book = await session.scalar(select(Book.url_orig).where(
             Book.url == url_from_current_cite))
 
@@ -250,4 +252,9 @@ async def reader_session_by_user(literature: str, num: int):
             book_func = await BookService.book_url_getter_to_read(literature, num)
             book = book_func['book']
 
+        book = await redis.executor(data=book, ex=120)
+
     return book
+
+
+

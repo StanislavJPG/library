@@ -1,4 +1,7 @@
+import json
 from pathlib import Path
+
+import aioredis
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
 from starlette.responses import HTMLResponse
 
@@ -7,7 +10,6 @@ from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.database import async_session_maker
 from src.library.service import test
-from src.profile.service import test_profile
 from PIL import Image
 from sqlalchemy import update
 
@@ -23,12 +25,12 @@ app = FastAPI(
     title='Library'
 )
 
+
 app.include_router(router_admin)
 app.include_router(router_base)
 app.include_router(router_library)
 app.include_router(router_profile)
 app.include_router(test)
-app.include_router(test_profile)
 app.include_router(router_auth)
 
 

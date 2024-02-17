@@ -1,14 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy import select, update, delete
+
 from src.auth.base_config import current_user
 from src.auth.models import User
-from src.database import async_session_maker
+from src.database import async_session_maker, RedisHash
 from src.library.models import Book, Library
-
-
-test_profile = APIRouter(
-    tags=['Profile_test']
-)
 
 
 async def view_profile_information(user=Depends(current_user)) -> dict:
@@ -17,30 +13,43 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
     but this books has it own ratings by user
     2. It returns user's profile image
     3. It returns all library columns by current user
+    4. It uses hash by redis
     """
-
     async with async_session_maker() as session:
-        profile_image_query = select(User.profile_image
-                                     ).where(User.id == str(user.id))
-        profile_image = await session.scalars(profile_image_query)
-        profile_image = profile_image.first()   # this is simple query to get user's profile pic
+        redis = RedisHash(f'user_profile.{user.id}')
 
+        # this is simple query to get user's profile pic
+        profile_image_query = select(User.profile_image).where(User.id == str(user.id))
+        profile_image = await session.scalars(profile_image_query)
+        profile_image = profile_image.first()
+
+        # here I'm getting all library columns by current user
         query_users_ratings = await session.scalars(select(Library).where(
             Library.user_id == str(user.id)
         ))
-        library = query_users_ratings.all()    # here I'm getting all library columns by current user
 
+        library = [{k: v for k, v in entry.as_dict().items() if k != 'user_id'}
+                   for entry in query_users_ratings.all()]
+
+        # here I'm asking for all books that are NOT saved to the profile
         query_books_ids = await session.scalars(select(Library.book_id).where(
             (Library.user_id == str(user.id)) & (Library.is_saved_to_profile.is_(False) &
                                                  (Library.rating.is_not(None)))
-        ))   # here I'm asking for all books that are NOT saved to the profile
+        ))
         books_ids = query_books_ids.all()
 
+        # finally getting books that user not saved to the profile but still has rating of it
         query_books_not_in_profile = await session.scalars(select(Book).where(
             Book.id.in_(books_ids)
-        ).limit(5))   # finally getting books that user not saved to the profile but still has rating of it
-        books_not_in_profile = query_books_not_in_profile.all()
-    return {'books': books_not_in_profile, 'image': profile_image, 'library': library}
+        ).limit(5))
+        books_not_in_profile = [x.as_dict() for x in query_books_not_in_profile.all()]
+
+        # executing data in memory with redis
+
+        data = await redis.executor(data={'books': books_not_in_profile, 'image': profile_image, 'library': library},
+                                    ex=20)
+
+    return data
 
 
 async def delete_book(book_id: int, user=Depends(current_user)):

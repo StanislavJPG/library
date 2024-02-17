@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from src.auth.base_config import current_optional_user
 from src.base.router import templates
-from src.database import async_session_maker
+from src.database import async_session_maker, RedisHash
 from src.library.models import Library, Book
 from src.library.service import reader_session_by_user, BookService, DatabaseInteract
 from src.library.shemas import RatingService
@@ -57,11 +57,13 @@ async def get_read_page(request: Request, literature: str,
                         num: int = Query(..., description='Number', gt=0),
                         user=Depends(current_optional_user)):
     book = await reader_session_by_user(literature, num)
+
     async with async_session_maker() as session:
         """
         here I should find book's rating
         """
         url_from_current_cite = f'http://127.0.0.1:8000/read/{literature.lower()}?num={num}'
+
         book_id = await session.scalar(select(Book.id).where(Book.url == url_from_current_cite))
 
         if user:
