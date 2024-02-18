@@ -1,6 +1,6 @@
 import json
 import aioredis
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Any, Union
 
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
@@ -41,7 +41,17 @@ class RedisHash:
     def __init__(self, value: str):
         self.value_name = value
 
-    async def executor(self, data: dict, ex: int = None):
+    async def check(self) -> Union[True, None]:
+        cached_data = await self.REDIS.get(self.value_name)
+        if cached_data:
+            return True
+
+    async def get(self) -> dict:
+        cached_data = await self.REDIS.get(self.value_name)
+        data = json.loads(cached_data)
+        return data
+
+    async def executor(self, data: Any, ex: int = None) -> Union[Any, dict]:
         cached_data = await self.REDIS.get(self.value_name)
         if cached_data:
             data = json.loads(cached_data)

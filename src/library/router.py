@@ -3,9 +3,9 @@ from sqlalchemy import select
 
 from src.auth.base_config import current_optional_user
 from src.base.router import templates
-from src.database import async_session_maker, RedisHash
+from src.database import async_session_maker
 from src.library.models import Library, Book
-from src.library.service import reader_session_by_user, BookService, DatabaseInteract
+from src.library.service import reader_session_by_user, save_rating_db, save_book_db, get_full_info
 from src.library.shemas import RatingService
 
 router = APIRouter(
@@ -26,11 +26,13 @@ async def get_library_page(request: Request,
 async def library_search(request: Request, literature: str,
                          user=Depends(current_optional_user)):
     try:
-        search_result = await BookService.get_full_info(literature)
+        search_result = await get_full_info(literature)
     except ValueError:
+        error_desc = 'Скоріш за все, ми не знайшли цю книгу :('
+
         return templates.TemplateResponse(
             'error.html',
-            {'request': request, 'error': 'Скоріш за все, ми не знайшли цю книгу :(', 'user': user}, status_code=404)
+            {'request': request, 'error': error_desc, 'user': user}, status_code=404)
 
     return templates.TemplateResponse(
         'library.html',
@@ -43,7 +45,7 @@ async def save_book_page(request: Request, literature: str,
                          num: int = Query(..., description='Number', gt=0),
                          user=Depends(current_optional_user)):
 
-    database = await DatabaseInteract.save_book_db(literature, num, user)
+    database = await save_book_db(literature, num, user)
 
     return templates.TemplateResponse(
         'library.html',
@@ -82,4 +84,4 @@ async def get_read_page(request: Request, literature: str,
 
 @router.post('/save_rating_to_database')
 async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(current_optional_user)):
-    await DatabaseInteract.save_rating_db(rating_schema, user)
+    await save_rating_db(rating_schema, user)
