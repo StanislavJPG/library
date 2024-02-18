@@ -16,7 +16,16 @@
             <input type="text" class="form-control" style="width: 400px;" id="book_id" placeholder="Введіть книжку"/>
             <h1 class="display-4" style="font-size: 15px; margin-bottom: 15px; margin-top: 15px;">Так, як сайт новий - можлива відсутність результату пошуку.</h1>
             <div class="center">
-                <button class="btn btn-dark" onclick="SimpleSearchForLiterature()">Пошук</button>
+                <button class="btn btn-dark" id="myBtn" onclick="SimpleSearchForLiterature()">Пошук</button>
+                <script>
+                    var input = document.getElementById("book_id");
+                    input.addEventListener("keypress", function(event) {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        document.getElementById("myBtn").click();
+                      }
+                    });
+                </script>
             </div>
         </div>
 
@@ -36,7 +45,7 @@
                         </h1>
                         {% if book['urls']|length != 0%}
                         <div style="margin-top: 25px; cursor: pointer;" class="readButton">
-                            <div style="text-align: center;" class="clickable_img" onclick="window.open('{{ book['url'] }}')">
+                            <div style="text-align: center;" class="clickable_img">
                                 <img src="{{ book['image'] }}" id="book-hardcover" alt="Book hardcover">
                             </div>
                         </div>

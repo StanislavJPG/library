@@ -58,6 +58,8 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
 
 async def delete_book(book_id: int, user=Depends(current_user)):
     async with async_session_maker() as session:
+        redis = RedisHash(f'user_profile.{user.id}')
+
         is_rating_exists = await session.scalar(select(Library.rating).where(
             (Library.user_id == str(user.id)) & (Library.book_id == book_id)
         ))
@@ -75,6 +77,7 @@ async def delete_book(book_id: int, user=Depends(current_user)):
                     is_saved_to_profile=False
                 )
                 # if user deleting book and set to it any rating - it changes is_saved_to_profile to False
+                # after that - deleting cache from redis
             else:
                 stmt = delete(Library).where(
                     (Library.user_id == str(user.id)) & (Library.book_id == book_id) &
@@ -87,6 +90,8 @@ async def delete_book(book_id: int, user=Depends(current_user)):
             stmt = delete(Library).where(
                 (Library.user_id == str(user.id)) & (Library.book_id == book_id)
             )
+
+        await redis.delete()
         await session.execute(stmt)
         await session.commit()
 

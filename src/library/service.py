@@ -120,9 +120,9 @@ async def get_full_info(book: str):
         title = page.find('span', class_='mw-page-title-main').text
         description = page.find('p')
 
-        data = await redis.executor({'image': image, 'title': title, 'description': description.text,
-                                     'urls': urls['book_lst']},
-                                    ex=120)
+        data = await redis.executor(data={'image': image, 'title': title,
+                                          'description': description.text, 'urls': urls['book_lst']},
+                                    ex=300)
     return data
 
 
@@ -137,6 +137,8 @@ async def book_url_getter_to_read(literature: str, num: int):
 
 async def save_book_db(book: str, num: int, user=Depends(current_user)):
     async with async_session_maker() as session:
+        redis = RedisHash(f'user_profile.{user.id}')
+
         url = f'http://127.0.0.1:8000/read/{book.lower()}?num={num}'
         book_orig_url = await session.scalar(select(Book.url_orig).where(Book.url == url))
 
@@ -179,11 +181,12 @@ async def save_book_db(book: str, num: int, user=Depends(current_user)):
                 else:
                     raise HTTPException(status_code=409, detail=status.HTTP_409_CONFLICT)
 
+        await redis.delete()
         await session.execute(stmt)
         await session.commit()
 
 
-async def book_id(rating_schema: RatingService):
+async def get_book_id(rating_schema: RatingService):
     """
     Taking specific book id from database
     """
@@ -198,7 +201,9 @@ async def book_id(rating_schema: RatingService):
 
 async def save_rating_db(rating_schema: RatingService, user=Depends(current_optional_user)):
     async with async_session_maker() as session:
-        book = await book_id(rating_schema)
+        redis = RedisHash(f'user_profile.{user.id}')
+
+        book = await get_book_id(rating_schema)
         has_book = await session.scalar(select(Library.book_id).where(
             (Library.book_id == book['book_id']) & (Library.user_id == str(user.id))
         ))  # taking book id by current user (if it exists)
@@ -228,7 +233,7 @@ async def save_rating_db(rating_schema: RatingService, user=Depends(current_opti
                 await session.execute(stmt_save)
                 await session.commit()
 
-            book_new = await book_id(rating_schema)
+            book_new = await get_book_id(rating_schema)
 
             stmt = insert(Library).values(
                 user_id=user.id,
@@ -237,6 +242,9 @@ async def save_rating_db(rating_schema: RatingService, user=Depends(current_opti
                 is_saved_to_profile=False
             )   # book WILL not save in profile if user set rating but DO not save a book
 
+        # when user making any operations with book in profile it updates hash by deleting it
+        # (and then making again)
+        await redis.delete()
         await session.execute(stmt)
         await session.commit()
 
@@ -260,6 +268,3 @@ async def reader_session_by_user(literature: str, num: int):
         book = await redis.executor(data=book, ex=120)
 
     return book
-
-
-

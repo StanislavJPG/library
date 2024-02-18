@@ -1,6 +1,6 @@
 import json
 import aioredis
-from typing import AsyncGenerator, Any, Union
+from typing import AsyncGenerator, Union
 
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
@@ -36,6 +36,10 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
 
 
 class RedisHash:
+    """
+    This class provides hash data logic with aioredis
+    """
+
     REDIS = aioredis.from_url('redis://localhost')
 
     def __init__(self, value: str):
@@ -45,20 +49,26 @@ class RedisHash:
         cached_data = await self.REDIS.get(self.value_name)
         if cached_data:
             return True
+        await self.REDIS.close()
 
     async def get(self) -> dict:
         cached_data = await self.REDIS.get(self.value_name)
         data = json.loads(cached_data)
+        await self.REDIS.close()
+
         return data
 
-    async def executor(self, data: Any, ex: int = None) -> Union[Any, dict]:
+    async def executor(self, data: dict, ex: int = None) -> dict:
         cached_data = await self.REDIS.get(self.value_name)
         if cached_data:
             data = json.loads(cached_data)
             return data
 
+        serialized_data = json.dumps(data)
+        await self.REDIS.set(name=self.value_name, value=serialized_data, ex=ex)
         await self.REDIS.close()
 
-        serialized_data = json.dumps(data)
-        await self.REDIS.set(self.value_name, serialized_data, ex=ex)
         return data
+
+    async def delete(self) -> None:
+        await self.REDIS.delete(self.value_name)

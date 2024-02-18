@@ -18,7 +18,16 @@
                 <input type="email" minlength="1" id="email" class="form-control" style="margin-bottom: 10px;" placeholder="Пошта" required>
                 <input type="password" minlength="1" id="password" class="form-control" placeholder="Пароль" required>
                 <div><b style="color: red;" id="error-message"></b></div>
-                <button type="button" onclick="loginUser()" style="margin-top: 20px;" class="btn btn-dark">Вхід</button>
+                <script>
+                    var input = document.getElementById("password");
+                    input.addEventListener("keypress", function(event) {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        document.getElementById("myBtn").click();
+                      }
+                    });
+                </script>
+                <button type="button" id="myBtn" onclick="loginUser()" style="margin-top: 20px;" class="btn btn-dark">Вхід</button>
             </form>
             <div style="margin-top: 25px;">Ще не маєте профіль?</div><button onclick="location.href='http://127.0.0.1:8000/registration'" style="margin-top: 10px;" class="btn btn-dark">Зареєструватись</button>
         </div>

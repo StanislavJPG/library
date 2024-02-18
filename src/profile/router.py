@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 from fastapi import APIRouter, Request, Depends
 from src.auth.base_config import current_optional_user, current_optional_superuser
