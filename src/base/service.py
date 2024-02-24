@@ -1,13 +1,13 @@
 from sqlalchemy import select
 
-from src.database import async_session_maker, RedisHash
+from src.database import async_session_maker, RedisCash
 from src.library.models import Library, Book
 
 
 async def get_best_books():
     async with async_session_maker() as session:
         # Redis instance with value name
-        redis = RedisHash('best_books_rating')
+        redis = RedisCash('best_books_rating')
         is_cache_exists = await redis.check()
 
         if is_cache_exists:

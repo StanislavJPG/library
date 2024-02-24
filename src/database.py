@@ -1,19 +1,18 @@
 import json
 import aioredis
-from typing import AsyncGenerator, Union
+from typing import AsyncGenerator, Union, Any
 
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy import String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 
 from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-Base: DeclarativeMeta = declarative_base()
+Base = declarative_base()
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
@@ -35,9 +34,9 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
 
 
-class RedisHash:
+class RedisCash:
     """
-    This class provides hash data logic with aioredis
+    This class provides data cash logic with aioredis (async redis)
     """
 
     REDIS = aioredis.from_url('redis://localhost')
@@ -58,7 +57,7 @@ class RedisHash:
 
         return data
 
-    async def executor(self, data: dict, ex: int = None) -> dict:
+    async def executor(self, data: Any, ex: int = None) -> Any:
         cached_data = await self.REDIS.get(self.value_name)
         if cached_data:
             data = json.loads(cached_data)

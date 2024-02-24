@@ -18,9 +18,10 @@ class BookCreate(BaseModel):
 class Library(BaseModel):
     __tablename__ = "library"
 
+    id: int
     user_id: uuid.UUID
-    book_id: str
-    rating: float
+    book_id: int
+    rating: int
     is_saved_to_profile: bool
 
 

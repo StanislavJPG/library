@@ -101,7 +101,7 @@
             {% if page > 1 %}
                 <button onclick="window.location.href=`/admin_panel?page={{ page - 1 }}`" class="btn btn-dark">Назад</button>
             {% endif %}
-            {% if books_request|length == 4 %}
+            {% if books_request|length > 4 %}
                 <button onclick="window.location.href=`/admin_panel?page={{ page + 1 }}`" class="btn btn-dark">Далі</button>
             {% endif %}
         </div>

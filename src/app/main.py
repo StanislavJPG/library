@@ -1,7 +1,5 @@
-import json
 from pathlib import Path
 
-import aioredis
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
 from starlette.responses import HTMLResponse
 
@@ -19,10 +17,24 @@ from src.profile.router import router as router_profile
 from src.auth.router import router as router_auth
 from src.admin.router import router as router_admin
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title='Library'
+)
+
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["*"],
 )
 
 

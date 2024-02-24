@@ -3,7 +3,7 @@ from sqlalchemy import select, update, delete
 
 from src.auth.base_config import current_user
 from src.auth.models import User
-from src.database import async_session_maker, RedisHash
+from src.database import async_session_maker, RedisCash
 from src.library.models import Book, Library
 
 
@@ -16,7 +16,7 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
     4. It uses hash by redis
     """
     async with async_session_maker() as session:
-        redis = RedisHash(f'user_profile.{user.id}')
+        redis = RedisCash(f'user_profile.{user.id}')
         is_cache_exists = await redis.check()
 
         if is_cache_exists:
@@ -56,9 +56,9 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
     return data
 
 
-async def delete_book(book_id: int, user=Depends(current_user)):
+async def delete_book(book_id: int, user=Depends(current_user)) -> None:
     async with async_session_maker() as session:
-        redis = RedisHash(f'user_profile.{user.id}')
+        redis = RedisCash(f'user_profile.{user.id}')
 
         is_rating_exists = await session.scalar(select(Library.rating).where(
             (Library.user_id == str(user.id)) & (Library.book_id == book_id)

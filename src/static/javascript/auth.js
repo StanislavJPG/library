@@ -45,6 +45,7 @@ function loginUser(email, password) {
           else if (response.status === 400){
               document.getElementById("error-message").innerText = "Перевірте введені дані"
           } else {
+                alert('Ви успішно авторизувались.');
                 window.location.href = '/';
             }
         });

@@ -9,10 +9,14 @@ DB_NAME = os.environ.get('DB_NAME')
 DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 
-DEFAULT_IMAGE = os.environ.get('DEFAULT_IMAGE')
+TEST_DB_HOST = os.environ.get('TEST_DB_HOST')
+TEST_DB_PORT = os.environ.get('TEST_DB_PORT')
+TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
+TEST_DB_USER = os.environ.get('TEST_DB_USER')
+TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
 
-URL_WEATHER_API = os.environ.get('URL_WEATHER_API')
-APPID = os.environ.get('APPID')
+
+DEFAULT_IMAGE = os.environ.get('DEFAULT_IMAGE')
 
 MAIL_NAME = os.environ.get('MAIL_NAME')
 MAIL_PASS = os.environ.get('MAIL_PASS')

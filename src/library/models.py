@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from src.auth.models import User
@@ -27,9 +27,10 @@ class Library(Base):
 
     # this is an association table, that takes id's from Book and User models as foreign keys
 
+    id = Column(Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), primary_key=True)
     book_id = Column(Integer, ForeignKey(Book.id), primary_key=True)
-    rating = Column(Integer)
+    rating = Column(Integer, nullable=True)
     is_saved_to_profile = Column(Boolean)
 
     book = relationship("Book", back_populates="libraries")

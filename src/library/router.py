@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Request, Query, Depends
 from sqlalchemy import select
+from fastapi.responses import HTMLResponse
 
 from src.auth.base_config import current_optional_user
 from src.base.router import templates
 from src.database import async_session_maker
 from src.library.models import Library, Book
-from src.library.service import reader_session_by_user, save_rating_db, save_book_db, get_full_info
+from src.library.service import BookConnection, get_full_info
 from src.library.shemas import RatingService
 
 router = APIRouter(
@@ -13,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.get('/library')
+@router.get('/library', response_class=HTMLResponse)
 async def get_library_page(request: Request,
                            user=Depends(current_optional_user)):
     return templates.TemplateResponse(
@@ -22,7 +23,7 @@ async def get_library_page(request: Request,
     )
 
 
-@router.get('/library/{literature}')
+@router.get('/library/{literature}', response_class=HTMLResponse)
 async def library_search(request: Request, literature: str,
                          user=Depends(current_optional_user)):
     try:
@@ -41,24 +42,23 @@ async def library_search(request: Request, literature: str,
 
 
 @router.post('/library/save_book/{literature}')
-async def save_book_page(request: Request, literature: str,
+async def save_book_page(literature: str,
                          num: int = Query(..., description='Number', gt=0),
-                         user=Depends(current_optional_user)):
-
-    database = await save_book_db(literature, num, user)
-
-    return templates.TemplateResponse(
-        'library.html',
-        {'request': request, 'user_title': literature,
-         'database': database, 'user': user}
-    )
+                         user=Depends(current_optional_user)) -> None:
+    # creating the instance of BookConnection class
+    _database_conn = BookConnection(book=literature, num=num, user=user)
+    # and use save_book_db method to save book to database
+    await _database_conn.save_book_db()
 
 
-@router.get('/read/{literature}')
+@router.get('/read/{literature}', response_class=HTMLResponse)
 async def get_read_page(request: Request, literature: str,
                         num: int = Query(..., description='Number', gt=0),
                         user=Depends(current_optional_user)):
-    book = await reader_session_by_user(literature, num)
+    # creating the instance of BookConnection class
+    _database_conn = BookConnection(book=literature, num=num, user=user)
+    # and use it to return full info about book
+    book = await _database_conn.url_reader_by_user()
 
     async with async_session_maker() as session:
         """
@@ -82,6 +82,9 @@ async def get_read_page(request: Request, literature: str,
     )
 
 
-@router.post('/save_rating_to_database')
-async def book_rating_maker_by_user(rating_schema: RatingService, user=Depends(current_optional_user)):
-    await save_rating_db(rating_schema, user)
+@router.post('/save_rating_to_database', response_model=None)
+async def create_book_rating_by_user(rating_schema: RatingService, user=Depends(current_optional_user)) -> None:
+    # creating the instance of BookConnection class
+    _database_conn = BookConnection(rating_schema=rating_schema, user=user)
+    # then save rating to database
+    await _database_conn.save_rating_db()
