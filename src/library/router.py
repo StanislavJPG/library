@@ -6,7 +6,7 @@ from src.auth.base_config import current_optional_user
 from src.base.router import templates
 from src.database import async_session_maker
 from src.library.models import Library, Book
-from src.library.service import BookConnection, get_full_info
+from src.library.service import BookConnection, BookSearchService
 from src.library.shemas import RatingService
 
 router = APIRouter(
@@ -27,7 +27,8 @@ async def get_library_page(request: Request,
 async def library_search(request: Request, literature: str,
                          user=Depends(current_optional_user)):
     try:
-        search_result = await get_full_info(literature)
+        query_book_search = BookSearchService(literature)
+        search_result = await query_book_search.get_full_info()
     except ValueError:
         error_desc = 'Скоріш за все, ми не знайшли цю книгу :('
 
