@@ -51,7 +51,7 @@ function confirmRating(url, title, num) {
 
       if (isRating) {
 
-          const ratingUrl = '/save_rating_to_database';
+          const ratingUrl = '/api/library/save_rating_to_database';
           const data = {
               "current_book_url": url,
               "user_rating": ratingValue,

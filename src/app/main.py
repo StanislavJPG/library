@@ -11,10 +11,10 @@ from src.library.service import test
 from PIL import Image
 from sqlalchemy import update
 
-from src.base.router import router as router_base, templates
-from src.library.router import router as router_library
+from src.pages.router import router as router_pages, templates
+from src.library.router import router as router_lib
 from src.profile.router import router as router_profile
-from src.auth.router import router as router_auth
+
 from src.admin.router import router as router_admin
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,11 +39,11 @@ app.add_middleware(
 
 
 app.include_router(router_admin)
-app.include_router(router_base)
-app.include_router(router_library)
+app.include_router(router_pages)    # <--
+app.include_router(router_lib)
 app.include_router(router_profile)
+
 app.include_router(test)
-app.include_router(router_auth)
 
 
 app.mount(
@@ -104,6 +104,9 @@ async def http_exception_handler(request: Request, exc: HTTPException, user=Depe
 
 @app.post('/image')
 async def create_upload_file(user=Depends(current_user), file: UploadFile = File(...)):
+    """
+    profile image upload logic
+    """
     filepath = str(Path(__file__).parent.parent.absolute() / "static" / "images")
     filename = file.filename
     file_format = filename.split('.')[1]

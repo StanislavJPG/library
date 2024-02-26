@@ -2,4 +2,7 @@
 /.venv/
 .env
 abs.py
-'.env' 
+'.env'
+pgdata/
+.test_db.db
+

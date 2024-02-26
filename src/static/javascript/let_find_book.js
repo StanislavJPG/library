@@ -1,5 +1,5 @@
 function letAdminFindBook(title, image) {
-    const Url = "/books/let_find";
+    const Url = "/api/library/books/let_find";
     const data = {
           "title": title,
           "image": image

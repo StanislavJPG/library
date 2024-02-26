@@ -31,7 +31,7 @@ fileInput.addEventListener('change', async function () {
 
 function deleteBook(book_id) {
     console.log(book_id);
-  const loginUrl = `/books/${book_id}`;
+  const loginUrl = `/api/books/${book_id}`;
   const loginOptions = {
     method: 'DELETE',
     headers: {

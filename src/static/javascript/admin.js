@@ -1,5 +1,5 @@
 function BookCreate(id, title, description, url, url_orig, page) {
-    const Url = `/admin_panel/create_book?page=${page}`;
+    const Url = `/api/admin_panel/create_book?page=${page}`;
     const data = {
           "id": id,
           "title": title,

@@ -64,6 +64,7 @@ class RedisCash:
             return data
 
         serialized_data = json.dumps(data)
+        # ex = None is permanent key in redis
         await self.REDIS.set(name=self.value_name, value=serialized_data, ex=ex)
         await self.REDIS.close()
 

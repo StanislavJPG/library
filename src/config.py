@@ -16,7 +16,5 @@ TEST_DB_USER = os.environ.get('TEST_DB_USER')
 TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
 
 
-DEFAULT_IMAGE = os.environ.get('DEFAULT_IMAGE')
-
 MAIL_NAME = os.environ.get('MAIL_NAME')
 MAIL_PASS = os.environ.get('MAIL_PASS')

@@ -7,7 +7,7 @@ document.querySelectorAll('.saveButton').forEach(button => {
         let isSave = confirm('Ви бажаєте зберегти цю книгу до Вашого профілю?');
         if (isSave) {
             alert('Зачекайте, книга зберігається до вашого профілю...');
-            fetch(`/library/save_book/${literatureValue}?num=${bookIndex}`, {
+            fetch(`/api/library/save_book/${literatureValue}?num=${bookIndex}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ document.querySelectorAll('.readButton').forEach(button => {
 
 function saveBookFromProfile(book_id) {
     console.log(book_id);
-  const saveUrl = `/save_back/${book_id}`;
+  const saveUrl = `/api/save_back/${book_id}`;
   const saveOptions = {
     method: 'PUT',
     headers: {
