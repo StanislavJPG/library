@@ -18,3 +18,6 @@ TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
 
 MAIL_NAME = os.environ.get('MAIL_NAME')
 MAIL_PASS = os.environ.get('MAIL_PASS')
+
+REDIS_HOST = os.environ.get('REDIS_HOST')
+REDIS_PORT = os.environ.get('REDIS_PORT')

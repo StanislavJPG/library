@@ -3,7 +3,7 @@ from sqlalchemy import select, update, delete
 
 from src.auth.base_config import current_user
 from src.auth.models import User
-from src.database import async_session_maker, RedisCash
+from src.database import RedisCash, async_session_maker
 from src.library.models import Book, Library
 
 
@@ -15,13 +15,13 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
     3. It returns all library columns by current user
     4. It uses hash by redis
     """
-    async with async_session_maker() as session:
-        redis = RedisCash(f'user_profile.{user.id}')
-        is_cache_exists = await redis.check()
+    redis = RedisCash(f'user_profile.{user.id}')
+    is_cache_exists = await redis.check()
 
-        if is_cache_exists:
-            data = await redis.get()
-        else:
+    if is_cache_exists:
+        data = await redis.get()
+    else:
+        async with async_session_maker() as session:
             # this is simple query to get user's profile pic
             profile_image_query = select(User.profile_image).where(User.id == str(user.id))
             profile_image = await session.scalars(profile_image_query)
@@ -57,9 +57,9 @@ async def view_profile_information(user=Depends(current_user)) -> dict:
 
 
 async def delete_book(book_id: int, user=Depends(current_user)) -> None:
-    async with async_session_maker() as session:
-        redis = RedisCash(f'user_profile.{user.id}')
+    redis = RedisCash(f'user_profile.{user.id}')
 
+    async with async_session_maker() as session:
         is_rating_exists = await session.scalar(select(Library.rating).where(
             (Library.user_id == str(user.id)) & (Library.book_id == book_id)
         ))
@@ -97,11 +97,11 @@ async def delete_book(book_id: int, user=Depends(current_user)) -> None:
 
 
 async def view_books(book_name: str, page: int = 1, user: User = current_user, per_page: int = 3) -> dict:
+    """
+    Here I am implementing function that will view all books that user has ever saved
+    view_books() finding all user's books from database by its ID and is_saved_to_profile
+    """
     async with async_session_maker() as session:
-        """
-        Here I am implementing function that will view all books that user has ever saved
-        view_books() finding all user's books from database by its ID and is_saved_to_profile
-        """
         query_get_specific_book_id = await session.scalars(select(Library.book_id).where(
             (Library.user_id == str(user.id)) & (Library.is_saved_to_profile.is_(True))
         ))
@@ -128,4 +128,4 @@ async def view_books(book_name: str, page: int = 1, user: User = current_user, p
 
         books = query_get_book.all()
 
-        return {'books': books, 'page': page}
+    return {'books': books, 'page': page}
