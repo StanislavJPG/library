@@ -1,13 +1,22 @@
-function BookCreate(id, title, description, url, url_orig, page) {
+function BookCreate(id=null, title, description, url, url_orig, page) {
     const Url = `/api/admin_panel/create_book?page=${page}`;
-    const data = {
-          "id": id,
-          "title": title,
-          "description": description,
-          "url": url,
-          "url_orig": url_orig,
-          }
-
+    if (id === null) {
+        const data = {
+              "title": title,
+              "description": description,
+              "url": url,
+              "url_orig": url_orig,
+              }
+    }
+    else {
+        const data = {
+              "id": id,
+              "title": title,
+              "description": description,
+              "url": url,
+              "url_orig": url_orig,
+              }
+    }
     const Options = {
         method: 'POST',
         headers: {

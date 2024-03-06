@@ -64,7 +64,7 @@
                             <img src="{{ book['image'] }}" alt="Book hardcover" style="width:180px;height:260px;">
                         </div>
                         <div class="book-details">
-                            <h1 style="font-size: 33px; margin-bottom: 25px;" class="display-4 title">{{ book['title'] }}</h1>
+                            <h1 style="font-size: 33px; margin-bottom: 25px;" class="display-4 title">{{ book['title'][4:] }}</h1>
                             <h6 class="description">{{ book['description'] }}</h6>
                             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
                             <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">

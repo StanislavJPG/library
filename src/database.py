@@ -40,7 +40,7 @@ class RedisCash:
 
     REDIS = aioredis.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}')
 
-    def __init__(self, value: str):
+    def __init__(self, value: str = None) -> None:
         self.value_name = value
 
     async def check(self) -> Union[True, None]:
@@ -56,6 +56,19 @@ class RedisCash:
 
         return data
 
+    async def get_alike(self, *values) -> list:
+        """
+        This is method that aims to search keys that's looks like values args
+        """
+        redis_keys = await self.REDIS.keys()
+        alike_keys_list = []
+
+        for key in redis_keys:
+            for value in values:
+                if value in str(key)[2:-1]:
+                    alike_keys_list.append(str(key)[2:-1])
+        return alike_keys_list
+
     async def executor(self, data: Any, ex: int = None) -> Any:
         cached_data = await self.REDIS.get(self.value_name)
         if cached_data:
@@ -63,11 +76,14 @@ class RedisCash:
             return data
 
         serialized_data = json.dumps(data)
-        # ex = None is permanent key in redis
+        # ex = None is permanent key in Redis
         await self.REDIS.set(name=self.value_name, value=serialized_data, ex=ex)
         await self.REDIS.close()
 
         return data
 
-    async def delete(self) -> None:
-        await self.REDIS.delete(self.value_name)
+    async def delete(self, value: Any = None) -> None:
+        if value:
+            await self.REDIS.delete(value)
+        else:
+            await self.REDIS.delete(self.value_name)

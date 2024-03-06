@@ -1,12 +1,14 @@
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import HTMLResponse
 
 from src.auth.base_config import fastapi_users, auth_backend, current_user, current_optional_user
 from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
-from src.database import async_session_maker
+from src.crud import update_users_pic
+from src.database import async_session_maker, get_async_session
 from src.library.service import test
 from PIL import Image
 from sqlalchemy import update
@@ -98,18 +100,19 @@ async def http_exception_handler(request: Request, exc: HTTPException, user=Depe
         return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
                                           status_code=exc.status_code)
     else:
-        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code},
+        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
                                           status_code=exc.status_code)
 
 
 @app.post('/image')
-async def create_upload_file(user=Depends(current_user), file: UploadFile = File(...)):
+async def create_upload_file(user=Depends(current_user), session: AsyncSession = Depends(get_async_session),
+                             file: UploadFile = File(...)):
     """
-    profile image upload logic
+    Profile image upload logic
     """
     filepath = str(Path(__file__).parent.parent.absolute() / "static" / "images")
     filename = file.filename
-    file_format = filename.split('.')[1]
+    file_format = filename.split('.')[1].lower()
 
     if file_format not in ['jpg', 'jpeg', 'png', 'tiff']:
         return {'status': 'error', 'details': 'File format is not allowed'}
@@ -131,11 +134,6 @@ async def create_upload_file(user=Depends(current_user), file: UploadFile = File
     img.save(generated_name)
     file.close()
 
-    async with async_session_maker() as session:
-        stmt = update(User).values(profile_image=token_name).where(
-            User.id == str(user.id)
-        )
-        await session.execute(stmt)
-        await session.commit()
+    await update_users_pic(session=session, user=user, token=token_name)
 
     return {'status': 200}

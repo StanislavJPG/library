@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+{% if user %}
     <div class="rounded container-auth">
         <div class="search-header-auth">
             <h1 class="text-muted">Ви бажаєте вийти з профілю?</h1>
@@ -14,4 +15,10 @@
         <script src="/static/javascript/auth.js"></script>
         <button onclick="location.href='http://127.0.0.1:8000/'" class="btn btn-dark">Ні, залишитись на сайті</button>
     </div>
+{% else %}
+    <div style="margin-top: 350px; text-align: center; font-size: 40px;">
+        <b style="font-style: oblique;">Оп-ля... <img src="/static/img/error.png" style="width: 170px;"></b>
+        <p style="font-weight: bold; font-style: oblique;">403...</p>
+    </div>
+{% endif %}
 {% endblock %}

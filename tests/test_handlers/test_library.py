@@ -1,7 +1,8 @@
 from httpx import AsyncClient
 from sqlalchemy import text
 
-from src.library.service import BookConnection
+from src.crud import CRUD
+from src.library.service import save_book_database
 from tests.conftest import link, override_async_session_maker, override_get_async_session
 
 test_book_name = 'ревізор'
@@ -34,9 +35,15 @@ async def test_create_temp_book(test_client: AsyncClient):
 class TestUser:
     def __init__(self, test_client: AsyncClient):
         self.test_client = test_client
+        self._id = None
 
     @property
-    async def id(self):
+    def id(self):
+        if self._id is None:
+            raise ValueError("User ID not set")
+        return self._id
+
+    async def fetch_id(self):
         registration = await self.test_client.post(f'{link}/auth/register', json={
             "email": "user@example.com",
             "password": "strings123",
@@ -47,13 +54,14 @@ class TestUser:
         })
         if registration.status_code == 201:
             async with override_async_session_maker() as session:
-                stmt = await session.scalar(
-                    text(f"""SELECT public.user.id FROM public.user WHERE public.user.username = 'String'"""))
-        return stmt
+                async with session.begin():
+                    stmt = await session.scalar(
+                        text(f"""SELECT public.user.id FROM public.user WHERE public.user.username = 'String'"""))
+                    self._id = stmt
 
 
 async def test_save_book(test_client: AsyncClient):
     user = TestUser(test_client)
+    await user.fetch_id()
 
-    _database_conn = BookConnection(book=test_book_name, num=book_num, user=user)
-    await _database_conn.save_book_db(session=override_async_session_maker())
+    await save_book_database(book=test_book_name, num=book_num, user=user)

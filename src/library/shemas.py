@@ -15,6 +15,10 @@ class BookCreate(BaseModel):
     url_orig: Optional[str] = None
 
 
+class BookAndRatingRead(BookCreate):
+    rating: conint(gt=0, le=5)
+
+
 class Library(BaseModel):
     __tablename__ = "library"
 

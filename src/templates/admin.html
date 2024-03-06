@@ -58,13 +58,13 @@
 
 
 {% block content %}
-<h1 class="display-4" style="text-align: center; margin-top: 50px;">Привіт, {{ admin.username }}!</h1>
+<h1 class="display-4" style="text-align: center; margin-top: 50px;">Привіт, {{ user.username }}!</h1>
 <div class="admin-panel">
     <div class="create-book-section">
-        <h1 class="display-4">Створити книгу по запиту:</h1>
+        <h1 class="display-4">Створити книгу по запиту або оновити існуючу:</h1>
         <div class="create-book-form">
             <form>
-                <input type="number" id="id" class="form-control" placeholder="Введи ID книги, котру хочеш додати до БД" required>
+                <input type="number" id="id" class="form-control" placeholder="Введи ID книги, котру хочеш додати до БД (залиш пустим, якщо оновлюєш)">
                 <div style="text-align: center;">
                     <p style="font-size: 20px; margin-top: 20px;">А тепер знаходь PDF та URL книги :)</p>
                     <p style="margin-top: -10px;">(Не забудь про title)</p>

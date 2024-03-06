@@ -3,11 +3,14 @@ from typing import Union
 import httpx
 from bs4 import BeautifulSoup as B_soup
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user
-from src.controllers import CRUD
+from src.crud import read_is_book_exists, create_book_and_change_data_for_library, create_book_in_library, \
+    read_is_book_saved_to_profile, update_book_back_to_profile, \
+    read_book_id_from_library_by_curr_user, update_rating_by_book_and_curr_user, read_book_directly_from_db, \
+    read_book_url_orig_by_url, get_url, read_book_id_by_url
 from src.database import RedisCash
-from src.library.models import Book, Library
 from fastapi import status
 
 from src.library.shemas import RatingService
@@ -23,8 +26,9 @@ class BookSearchService:
 
     SEARCH_PATTERN = 'https://www.google.com/search?q='
 
-    def __init__(self, book: str):
+    def __init__(self, book: str, session: AsyncSession = None) -> None:
         self.book = book
+        self.session = session
 
     async def title_search(self) -> Union[str, list]:
         # list always empty (UnboundLocalError)
@@ -79,10 +83,7 @@ class BookSearchService:
                     book_set.add(url_book)
 
             # load book directly from database if book is in there
-            query_url_book = await CRUD(Book.url_orig).read_args(
-                conditions=Book.title.like(f'%{self.book.split(" ")[0][1:]}%'),
-                is_single_result=True
-            )
+            query_url_book = await read_book_directly_from_db(session=self.session, book=self.book)
 
             if query_url_book is not None:
                 book_set.add(query_url_book)
@@ -129,7 +130,7 @@ class BookSearchService:
                                         ex=180)
         return data
 
-    async def book_url_getter_to_read(self, num: int):
+    async def book_url_getter_to_read(self, num: int) -> dict:
         info_book = await self.get_full_info()
 
         book = info_book['urls'][abs(num) % len(info_book['urls'])]
@@ -138,16 +139,13 @@ class BookSearchService:
         return {'info_about_book': info_book, 'book': book}
 
 
-async def save_book_database(book: str, num: int, rating: int = None, user=Depends(current_optional_user)) -> None:
+async def save_book_database(book: str, num: int, session: AsyncSession,
+                             rating: int = None, user=Depends(current_optional_user)) -> None:
     redis = RedisCash(f'user_profile.{user.id}')
-
-    url = f'http://127.0.0.1:8000/read/{book.lower()}?num={num}'
-    book_id = await CRUD(Book.id).read_args(
-        conditions=Book.url == url,
-        is_single_result=True)
+    book_id = await read_is_book_exists(book, num, session)
 
     data = {
-        'user_id': user.id,
+        'user_id': str(user.id),
         'book_id': book_id,
         'rating': rating,
         'is_saved_to_profile': True
@@ -155,58 +153,40 @@ async def save_book_database(book: str, num: int, rating: int = None, user=Depen
     # Creating book in tables (Book, Library) if book is not exists in database
     if book_id is None:
         info_book = await BookSearchService(book).get_full_info()
-        url_orig = info_book['urls'][abs(num) % len(info_book['urls'])]
+        data = await create_book_and_change_data_for_library(book, num, data, info_book, session)
 
-        await CRUD(Book).create_args(
-            title=f'№{num}. «{info_book["title"]}»',
-            image=info_book['image'],
-            description=info_book['description'],
-            url_orig=url_orig,
-            url=url
-        )
-        data['book_id'] = await CRUD(Book.id).read_args(Book.url == url, is_single_result=True)
-
-        await CRUD(Library).create_args(**data)
+        await create_book_in_library(session, **data)
     else:
         # in other case it checks is the book is saved to profile
-        is_book_saved_to_profile = await CRUD(Library.is_saved_to_profile).read_args(
-            conditions=(Library.user_id == str(user.id)) & (Library.book_id == book_id),
-            is_single_result=True
-        )
+        is_book_saved_to_profile = await read_is_book_saved_to_profile(session, user, book_id)
+
         # creating book by user in Library if it's not
         if is_book_saved_to_profile is None:
-            await CRUD(Library).create_args(**data)
+            await create_book_in_library(session, **data)
         # in other case it checks is the argument `is_saved_to_profile` is True of False
         # pulls book to profile if it's False
         else:
             if is_book_saved_to_profile is False:
-                await CRUD(Library).update_args(
-                    is_saved_to_profile=True,
-                    conditions=(Library.user_id == str(user.id)) & (Library.book_id == book_id),
-                )
+                await update_book_back_to_profile(session, user, book_id)
             # raising HTTPException if it's True (CONFLICT 409)
             else:
                 raise HTTPException(status_code=409, detail=status.HTTP_409_CONFLICT)
-
+    # clearing all the cache after all the operations with book
     await redis.delete()
 
 
-async def save_rating_db(rating_schema: RatingService, user) -> None:
+async def save_rating_db(rating_schema: RatingService, session: AsyncSession, user=Depends(current_optional_user)
+                         ) -> None:
     redis = RedisCash(f'user_profile.{user.id}')
+    # book_id returning book's id and url from table Book
+    book = await get_book_id(session, rating_schema)
+    # taking book id from table Library by current user (if it exists)
+    book_id = await read_book_id_from_library_by_curr_user(session=session, book=book, user=user)
 
-    # get_book_id returning book's id and url from table Book
-    book = await get_book_id(rating_schema)
-    book_id = await CRUD(Library.book_id).read_args(
-        conditions=(Library.book_id == book['book_id']) & (Library.user_id == str(user.id)),
-        is_single_result=True
-    )   # taking book id from table Library by current user (if it exists)
-
-    # updating if rating exists
+    # updating if book_id exists
     if book_id is not None:
-        await CRUD(Library).update_args(
-            rating=rating_schema.user_rating,
-            conditions=(Library.book_id == book['book_id']) & (Library.user_id == str(user.id))
-        )   # if book exists it updates rating to new value
+        # if book exists it updates rating to new value
+        await update_rating_by_book_and_curr_user(session, book, rating_schema.user_rating, user)
     else:
         if book['book_id'] is None:
             """
@@ -214,23 +194,23 @@ async def save_rating_db(rating_schema: RatingService, user) -> None:
              - It's creating a new book in book table and library table + rating
             """
             await save_book_database(book=rating_schema.title, rating=rating_schema.user_rating,
-                                     num=rating_schema.num, user=user)
+                                     num=rating_schema.num, user=user, session=session)
 
-        book = await get_book_id(rating_schema)
+        book = await get_book_id(session, rating_schema)
 
-        await CRUD(Library).create_args(
-            user_id=user.id,
-            book_id=book['book_id'],
-            rating=rating_schema.user_rating,
-            is_saved_to_profile=False
-        )   # book will NOT be saved in profile if user set any rating but DOES NOT save a book
+        data = {'user_id': user.id,
+                'book_id': book['book_id'],
+                'rating': rating_schema.user_rating,
+                'is_saved_to_profile': False}
+        # book will NOT be saved in profile if user set any rating but DOES NOT save a book
+        await create_book_in_library(session, **data)
 
     # when user making any operations with book in profile it updates hash by deleting it
     # (and then after updating a page it's making again)
     await redis.delete()
 
 
-async def url_reader_by_user(book, num) -> str:
+async def url_reader_by_user(session: AsyncSession, book, num) -> str:
     """
     This endpoint made for keep "DRY"
     It's created for getting book's ORIGINAL url directly from database if it exists
@@ -239,10 +219,7 @@ async def url_reader_by_user(book, num) -> str:
     redis = RedisCash(f'{book.lower()}.{num}')
     query_book_search = BookSearchService(book)
 
-    query_book = await CRUD(Book.url_orig).read_args(
-        conditions=Book.url == f'http://127.0.0.1:8000/read/{book.lower()}?num={num}',
-        is_single_result=True
-    )
+    query_book = await read_book_url_orig_by_url(session=session, book=book, num=num)
 
     if query_book is None:
         book_func = await query_book_search.book_url_getter_to_read(num)
@@ -255,14 +232,11 @@ async def url_reader_by_user(book, num) -> str:
     return book
 
 
-async def get_book_id(rating_schema: RatingService) -> dict:
+async def get_book_id(session: AsyncSession, rating_schema: RatingService) -> dict:
     """
     Taking specific book id from database
     """
-    url = f'http://127.0.0.1:8000/read/{rating_schema.title.lower()}?num={rating_schema.num}'
-
-    book_id = await CRUD(Book.id).read_args(
-        conditions=(Book.url_orig == rating_schema.current_book_url) & (Book.url == url),
-        is_single_result=True
-    )
+    url = await get_url(rating_schema.title, rating_schema.num)
+    book_id = await read_book_id_by_url(session, rating_schema.title,
+                                        rating_schema.num, url_orig=rating_schema.current_book_url)
     return {'book_id': book_id, 'url': url}
