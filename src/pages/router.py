@@ -5,9 +5,10 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import Jinja2Templates
 
-from src.admin.router import admin_panel_api
+from src.admin.router import admin_panel_api, search_specific_book_from_database_api
 from src.auth.base_config import current_optional_user, current_optional_superuser
 from src.base.service import get_best_books
+from src.crud import delete_redis_cache_statement
 from src.database import get_async_session
 from src.library.router import library_search_api, get_read_page_api
 from src.profile.router import get_profile_api
@@ -80,13 +81,17 @@ async def get_profile_page(request: Request, session: AsyncSession = Depends(get
 
 @router.get('/admin_panel', response_class=HTMLResponse)
 async def admin_panel_page(request: Request, admin=Depends(current_optional_superuser),
-                           page: Optional[int] = 1, session: AsyncSession = Depends(get_async_session)):
+                           page: Optional[int] = 1, book_title: Optional[str] = None,
+                           session: AsyncSession = Depends(get_async_session)):
+    if page > 0:
+        await delete_redis_cache_statement('admin_panel')
     if admin:
-        admin_api = await admin_panel_api(page, session=session)
+        book = await search_specific_book_from_database_api(book_title=book_title, session=session)
+        admin_api = await admin_panel_api(page=page, session=session)
 
         return templates.TemplateResponse(
             'admin.html',
-            {'request': request, 'user': admin,
+            {'request': request, 'user': admin, 'requested_book': book,
              'books_request': admin_api['books_request'], 'page': admin_api['page']}
         )
     else:

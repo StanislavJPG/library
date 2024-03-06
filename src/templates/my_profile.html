@@ -50,18 +50,25 @@
     <div class="userProfile rounded" style="text-align: center;">
         <div class="search-form">
             <script>
-
                 const searchForOperations = () => {
                     const searchInputValue = document.getElementById("book_id").value;
                     window.location.href = `/profile?book_name=${searchInputValue}`;
                 }
-
             </script>
             <h1 style="font-size: 40px; margin-bottom: 15px;" class="display-4">Збережені книги</h1>
                 <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Сторінка {{ page }}</h1>
                 <input type="text" class="form-control" id="book_id" placeholder="Знайти книгу..."/>
                 <div class="center">
-                    <button class="btn btn-dark btn-sm" onclick="searchForOperations()">Пошук</button>
+                    <button class="btn btn-dark btn-sm" id="search_btn" onclick="searchForOperations()">Пошук</button>
+                    <script>
+                        var input = document.getElementById("book_id");
+                        input.addEventListener("keypress", function(event) {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            document.getElementById("search_btn").click();
+                          }
+                        });
+                </script>
                 </div>
                 <div style="margin-top: 5px; margin-bottom: 10px;">
                     <button onclick="window.location.href='/profile'" class="btn btn-dark btn-sm">Скинути пошук</button>

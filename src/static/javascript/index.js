@@ -75,26 +75,6 @@ function sendVerificationEmail(email) {
     }
     };
 
-document.addEventListener('DOMContentLoaded', function () {
-    var showPopupButton = document.getElementById('showPopupButton');
-    var popupContainer = document.getElementById('popupContainer');
-    var closePopup = document.getElementById('closePopup');
-
-    showPopupButton.addEventListener('click', function () {
-        popupContainer.style.display = 'block';
-    });
-
-    closePopup.addEventListener('click', function () {
-        popupContainer.style.display = 'none';
-    });
-
-    window.addEventListener('click', function (event) {
-        if (event.target === popupContainer) {
-            popupContainer.style.display = 'none';
-        }
-    });
-});
-
 function acceptVerificationEmail(token) {
   const requestURL = '/auth/verify';
   const data = {"token": token};

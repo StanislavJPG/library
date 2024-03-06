@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link href="{{ url_for('static', path='/css/auth.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html">
+<link href="{{ url_for('static', path='/css/auth.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html"
+      xmlns="http://www.w3.org/1999/html">
 <title>Admin panel</title>
 <script src="/static/javascript/admin.js"></script>
 <style>
@@ -61,15 +62,42 @@
 <h1 class="display-4" style="text-align: center; margin-top: 50px;">Привіт, {{ user.username }}!</h1>
 <div class="admin-panel">
     <div class="create-book-section">
-        <h1 class="display-4">Створити книгу по запиту або оновити існуючу:</h1>
+    <h1 class="display-4" style="text-align: center; margin-bottom: 15px;">Пошук книги з бази даних:</h1>
+        <div style="text-align: center;">
+        <div style="margin-top: 10px;">
+            <div style="text-align: -webkit-center;">
+                <input id="search_from_db" type="text" style="width: 500px; text-align: center;" class="form-control" placeholder="Введіть назву книги">
+                <button onclick="searchForOperations(document.getElementById('search_from_db').value)" style="font-weight:bold; margin-top: 15px; margin-bottom: 30px;" class="btn btn-dark ">Пошук книги</button>
+                {% if requested_book %}
+                <div class="requests-list" style="text-align: -webkit-center;">
+                    <div class="book-request" style="width: 400px; border: 2px solid #ccc; margin-bottom: 15px;">
+                        <p><b>ID:</b> {{ requested_book['id'] }}, <b>Title:</b> {{ requested_book['title'] }}</p>
+                        <img src="{{ requested_book['image'] }}" alt="Book hardcover" style="padding:10px;width:140px;height:190px;">
+                    </div>
+                </div>
+                {% else %}
+                    <div class="alert" style="text-align: center; color: black; font-weight: bold;">
+                        404: Книга не знайдена
+                    </div>
+                {% endif %}
+            </div>
+            <script>
+                function searchForOperations(searchInputValue) {
+                    window.location.href = `/admin_panel?book_title=${searchInputValue}`;
+                }
+            </script>
+        </div>
+    </div>
         <div class="create-book-form">
             <form>
-                <input type="number" id="id" class="form-control" placeholder="Введи ID книги, котру хочеш додати до БД (залиш пустим, якщо оновлюєш)">
+                <h1 class="display-4" style="margin-top: 80px;">Створити або оновити книгу:</h1>
+                <input type="number" id="id" class="form-control" placeholder="Введи ID книги, котру хочеш додати до БД">
                 <div style="text-align: center;">
-                    <p style="font-size: 20px; margin-top: 20px;">А тепер знаходь PDF та URL книги :)</p>
-                    <p style="margin-top: -10px;">(Не забудь про title)</p>
+                    <p style="font-size: 20px; margin-top: 20px;">А тепер знаходьте PDF та URL книги :)</p>
+                    <p style="margin-top: -10px;">(Не забудьте про title)</p>
                 </div>
                 <input type="text" id="title" class="form-control" placeholder="title" required>
+                <textarea id="image" class="form-control" placeholder="https://" required></textarea>
                 <textarea id="description" class="form-control" placeholder="description" required></textarea>
                 <input type="text" id="url" class="form-control" placeholder="url" required>
                 <input type="text" id="url_orig" class="form-control" placeholder="url_orig" required>
@@ -77,6 +105,7 @@
                 <button type="button" onclick="BookCreate(
                     document.getElementById('id').value,
                     document.getElementById('title').value,
+                    document.getElementById('image').value,
                     document.getElementById('description').value,
                     document.getElementById('url').value,
                     document.getElementById('url_orig').value,
@@ -101,7 +130,7 @@
             {% if page > 1 %}
                 <button onclick="window.location.href=`/admin_panel?page={{ page - 1 }}`" class="btn btn-dark">Назад</button>
             {% endif %}
-            {% if books_request|length > 4 %}
+            {% if books_request|length > 3 %}
                 <button onclick="window.location.href=`/admin_panel?page={{ page + 1 }}`" class="btn btn-dark">Далі</button>
             {% endif %}
         </div>

@@ -5,13 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import HTMLResponse
 
 from src.auth.base_config import fastapi_users, auth_backend, current_user, current_optional_user
-from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.crud import update_users_pic
-from src.database import async_session_maker, get_async_session
+from src.database import get_async_session
 from src.library.service import test
 from PIL import Image
-from sqlalchemy import update
 
 from src.pages.router import router as router_pages, templates
 from src.library.router import router as router_lib
@@ -86,22 +84,17 @@ app.include_router(
 
 
 @app.get('/{page}', response_class=HTMLResponse)
-async def handling_error_page(request: Request, page: str, user=Depends(current_optional_user)):
+async def handling_error_page(request: Request, page: str):
     try:
-        content = templates.TemplateResponse(f'{page}.html', {'request': request, 'user': user})
-        return content
+        return templates.TemplateResponse(f'{page}.html', {'request': request})
     except Exception:
         raise HTTPException(status_code=404, detail='Page not found')
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException, user=Depends(current_optional_user)):
-    if not user:
-        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
-                                          status_code=exc.status_code)
-    else:
-        return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, 'user': user},
-                                          status_code=exc.status_code)
+async def http_exception_handler(request: Request, exc: HTTPException, user=Depends(current_user)):
+    return templates.TemplateResponse("error.html", {"request": request, "error": exc.status_code, "user": user},
+                                      status_code=exc.status_code)
 
 
 @app.post('/image')

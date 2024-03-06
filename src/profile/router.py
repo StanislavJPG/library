@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user, current_user
-from src.crud import update_book_back_to_the_profile
+from src.crud import update_book_back_to_the_profile, delete_redis_cache_statement
 from src.database import get_async_session
 from src.profile.service import view_profile_information, delete_book, view_books
 
@@ -16,7 +16,6 @@ router = APIRouter(
 @router.get('/profile')
 async def get_profile_api(session: AsyncSession = Depends(get_async_session), book_name: Optional[str] = None,
                           page: Optional[int] = 1, user=Depends(current_user)) -> dict:
-
     profile_data = await view_profile_information(session, user)
     books_in_profile = await view_books(session=session, book_name=book_name, page=page, user=user)
 

@@ -2,6 +2,8 @@ from sqlalchemy import select, insert, update, delete, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
 
+from starlette.exceptions import HTTPException
+
 from src.auth.base_config import fastapi_users
 from src.auth.models import User
 from src.database import RedisCash
@@ -10,7 +12,9 @@ from src.library.shemas import BookCreate
 
 
 async def read_book_directly_from_db(session: AsyncSession, book: str) -> Book:
-    stmt = await session.scalar(select(Book.url_orig).where(Book.title.like(f'%{book.split(" ")[0][1:]}%')))
+    stmt = await session.scalar(select(Book.url_orig).where(Book.title.like(f'%{book.lower()}%').__or__(
+        Book.title.like(f'%{book.title()}%').__or__(Book.title.like(f'%{book.split(" ")[0][1:]}%'))) &
+                                                            (Book.url.isnot(None))))
     return stmt
 
 
@@ -153,8 +157,7 @@ async def read_specific_book_id_from_library(session: AsyncSession, user: fastap
     return stmt
 
 
-async def read_books_in_profile_with_pagination(session: AsyncSession, offset: int, book_name: str,
-                                                user: fastapi_users) -> list[dict]:
+async def read_books_in_profile(session: AsyncSession, offset: int, book_name: str, user: fastapi_users) -> list[dict]:
     specific_book_id = await read_specific_book_id_from_library(session=session, user=user)
 
     if book_name is None:
@@ -167,7 +170,9 @@ async def read_books_in_profile_with_pagination(session: AsyncSession, offset: i
     else:
         # in any others cases it shows books, that user is looking for
         query_get_book = await session.scalars(select(Book).where(
-            (Book.id.in_(specific_book_id.all()) & (Book.title.like(f'%{book_name[1:]}%')))
+            (Book.id.in_(specific_book_id.all()) & (Book.title.like(f'%{book_name}%').__or__(
+                Book.title.like(f'%{book_name.title()}%')
+            )))
         ).offset(offset).limit(3))
 
     return [x.as_dict() for x in query_get_book.all()]
@@ -178,7 +183,7 @@ async def update_book_back_to_the_profile(session: AsyncSession, book_id: int, u
         (Library.book_id == book_id) & (Library.user_id == str(user.id))
     ))
     await session.commit()
-    await delete_redis_cache_statement()
+    await delete_redis_cache_statement(f'books_in_profile', f'user_and_books_not_in_profile')
 
 
 async def read_is_book_in_database_by_title(session: AsyncSession, book: str | BookCreate) -> Book:
@@ -197,26 +202,22 @@ async def create_book_by_users_request(session: AsyncSession, book: str | BookCr
     await session.commit()
 
 
-async def delete_redis_cache_statement() -> None:
+async def delete_redis_cache_statement(*args) -> None:
     redis = RedisCash()
-    for instance in await redis.get_alike(f'books_in_profile', f'user_and_books_not_in_profile'):
-        await redis.delete(instance)
+    for arg in args:
+        for instance in await redis.get_alike(arg):
+            await redis.delete(instance)
 
 
-async def read_is_book_exists_by_request(session: AsyncSession, book: BookCreate, query: list[dict]) -> bool:
-    is_book_exists = await session.scalar(select(Book).where(
-        (Book.title.in_(query)) & (Book.id == int(book.id))
-    )) is not None
-    return is_book_exists
-
-
-async def update_book_args_by_admin(session: AsyncSession, book: BookCreate = None) -> None:
+async def update_book_args_by_admin(session: AsyncSession, book: BookCreate) -> None:
+    stmt = await session.scalar(select(Book.id).where(Book.id == book.id))
     await session.execute(update(Book).values(
         title=book.title,
+        image=book.image,
         description=book.description,
         url=book.url,
         url_orig=book.url_orig
-    ))
+    ).where(Book.id == int(stmt)))
     await session.commit()
 
 
@@ -225,6 +226,15 @@ async def read_requested_books_for_admin(session: AsyncSession, offset: int) -> 
         (Book.title.isnot(None)) & (Book.image.isnot(None)) &
         (Book.url_orig.is_(None))).offset(offset).limit(4))
     return stmt.all()
+
+
+async def read_specific_book_from_database_by_admin(session: AsyncSession, book_title: str = None) -> Book | None:
+    if book_title:
+        stmt = await session.scalar(select(Book).where(Book.title.like(f'%{book_title}%').__or__(
+            Book.title.like(f'%{book_title.title()}%'))))
+    else:
+        return None
+    return stmt
 
 
 async def read_books_for_top_rating(session: AsyncSession) -> dict:

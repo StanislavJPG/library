@@ -10,12 +10,11 @@ from src.config import MAIL_NAME, MAIL_PASS
 from src.database import User, get_user_db
 
 
-SECRET = "SECRET"
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 465
-
-
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
+    SECRET = "SECRET"
+    SMTP_HOST = "smtp.gmail.com"
+    SMTP_PORT = 465
+
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
@@ -42,7 +41,8 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
                     <b style="font-size: 20px;">Нікому не повідомляйте цей код!</b>
                 </p>
                 <b style="font-size: 30px;">Ваш код підтвердження: </b>
-                <div style="border: 1px solid #ccc; margin: 10px; padding: 10px; text-align: center; border-radius: 10px; margin: auto;">
+                <div style="border: 1px solid #ccc; margin: 10px; padding: 10px; text-align: 
+                center; border-radius: 10px; margin: auto;">
                     <a style="font-size: 15px; font-family: 'Lucida Console', 'Courier New', monospace;">{token}</a>
                 </div>
                 <p style="font-size: 15px;">Скопіюйте цей код підтвердження та вставте його у вікно на сайті.</p>
@@ -52,7 +52,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             subtype='html'
         )
 
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+        with smtplib.SMTP_SSL(self.SMTP_HOST, self.SMTP_PORT) as server:
             server.login(MAIL_NAME, MAIL_PASS)
             server.send_message(email)
 

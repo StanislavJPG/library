@@ -4,5 +4,5 @@
 abs.py
 '.env'
 pgdata/
-.test_db.db
+test_db.db
 
