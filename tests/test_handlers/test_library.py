@@ -1,9 +1,11 @@
+import asyncio
+
 from httpx import AsyncClient
 from sqlalchemy import text
 
-from src.crud import CRUD
+from src.library.router import get_read_page_api, save_book_page_api
 from src.library.service import save_book_database
-from tests.conftest import link, override_async_session_maker, override_get_async_session
+from tests.conftest import link, override_async_session_maker, test_client
 
 test_book_name = 'ревізор'
 
@@ -13,11 +15,6 @@ async def test_book_search(test_client: AsyncClient):
     assert response.status_code == 200
 
 book_num = 1
-
-
-async def test_read(test_client: AsyncClient):
-    response = await test_client.get(f'{link}/api/library/read/{test_book_name}?num={book_num}')
-    assert response.status_code == 200
 
 
 async def test_create_temp_book(test_client: AsyncClient):
@@ -54,14 +51,22 @@ class TestUser:
         })
         if registration.status_code == 201:
             async with override_async_session_maker() as session:
-                async with session.begin():
-                    stmt = await session.scalar(
-                        text(f"""SELECT public.user.id FROM public.user WHERE public.user.username = 'String'"""))
-                    self._id = stmt
+                stmt = await session.scalar(
+                    text(f"""SELECT public.user.id FROM public.user WHERE public.user.username = 'String'"""))
+                self._id = stmt
 
 
-async def test_save_book(test_client: AsyncClient):
-    user = TestUser(test_client)
-    await user.fetch_id()
+async def test_read(test_client: AsyncClient, get_test_session):
+    # user = TestUser(test_client)
+    # await user.fetch_id()
+    # await get_read_page_api(literature=test_book_name, num=book_num, user=user, session=get_test_session)
+    response = await test_client.get(f'{link}/api/library/read/ревізор?num=1')
+    assert response.status_code == 200
 
-    await save_book_database(book=test_book_name, num=book_num, user=user)
+
+# async def test_save_book(test_client: AsyncClient, get_test_session):
+#     user = TestUser(test_client)
+#     await user.fetch_id()
+#     await save_book_page_api(literature=test_book_name, num=book_num, user=user, session=get_test_session)
+#     # await save_book_database(book=test_book_name, num=book_num, user=user, session=get_test_session)
+

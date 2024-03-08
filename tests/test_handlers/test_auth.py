@@ -1,7 +1,6 @@
 from httpx import AsyncClient
-from sqlalchemy import text
 
-from tests.conftest import link, override_async_session_maker
+from tests.conftest import link
 
 
 async def test_registration(test_client: AsyncClient):

@@ -1,13 +1,13 @@
 import asyncio
-import os
+
 import asyncpg
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import text, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.sql import text
 from typing import AsyncGenerator
-
+import aiopg
 import src.config as settings
 from src.app.main import app
 from fastapi.testclient import TestClient
@@ -37,17 +37,10 @@ async def clean_tables():
                 await session.execute(text(f"""TRUNCATE TABLE {table_for_cleaning} CASCADE;"""))
 
 
-# @pytest.fixture(scope="session", autouse=True)
-# async def run_migrations():
-#     os.system("alembic init migrations")
-#     os.system('alembic revision --autogenerate -m "test running migrations"')
-#     os.system("alembic upgrade heads")
-
-
-engine = create_async_engine(TEST_DATABASE_URL)
+test_engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
 override_async_session_maker = async_sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False, future=True)
-Base.metadata.bind = engine
+    bind=test_engine, class_=AsyncSession, expire_on_commit=False, future=True)
+Base.metadata.bind = test_engine
 
 client = TestClient(app)
 link = 'http://127.0.0.1:8000'
@@ -58,14 +51,6 @@ async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 app.dependency_overrides[get_async_session] = override_get_async_session
-
-
-@pytest.fixture(scope='session')
-def event_loop(request):
-    """Create an instance of the default event loop for each test case."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session")
@@ -83,12 +68,43 @@ async def asyncpg_pool():
     pool.close()
 
 
-# @pytest.fixture
-# async def get_user_from_database(asyncpg_pool):
-#     async def get_user_from_database_by_uuid(user_id: str):
-#         async with asyncpg_pool.acquire() as connection:
-#             return await connection.fetch(
-#                 """SELECT * FROM users WHERE user_id = $1;""", user_id
-#             )
-#
-#     return get_user_from_database_by_uuid
+# @pytest.fixture(scope="session", autouse=True)
+# async def run_migrations():
+#     os.system("alembic init migrations")
+#     os.system('alembic revision --autogenerate -m "test running migrations"')
+#     os.system("alembic upgrade head")
+
+
+# @pytest.fixture(scope="session")
+# def get_event_loop(future):
+#     """Create an instance of the default event loop for each test case."""
+#     loop = asyncio.get_event_loop().run_until_complete(future)
+#     yield loop
+#     loop.close()
+
+
+@pytest.fixture(scope="session")
+async def ac() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(app=app, base_url="http://127.0.0.1") as ac:
+        yield ac
+
+
+@pytest.fixture(scope="session")
+async def get_test_session(event_loop):
+    async with test_engine.connect() as connection:
+        transaction = await connection.begin()
+
+        override_async_session_maker.configure(bind=connection)
+
+        async with override_async_session_maker() as session:
+            yield session
+
+        await transaction.rollback()
+        await connection.close()
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()

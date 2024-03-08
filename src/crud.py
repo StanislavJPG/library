@@ -34,7 +34,6 @@ async def get_url(title: str, num: int) -> str:
 async def read_is_book_exists(title: str, num: int, session: AsyncSession) -> Book | None:
     url = await get_url(title, num)
     book_id = await session.scalar(select(Book.id).where(Book.url == url))
-
     return book_id
 
 
