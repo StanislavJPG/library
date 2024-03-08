@@ -2,7 +2,7 @@ from typing import Union
 
 import httpx
 from bs4 import BeautifulSoup as B_soup
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user
@@ -14,10 +14,6 @@ from src.database import RedisCash
 from fastapi import status
 
 from src.library.shemas import RatingService
-
-test = APIRouter(
-    prefix='/test'
-)
 
 
 class BookSearchService:

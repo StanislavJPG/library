@@ -4,11 +4,10 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import HTMLResponse
 
-from src.auth.base_config import fastapi_users, auth_backend, current_user, current_optional_user
+from src.auth.base_config import fastapi_users, auth_backend, current_user
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.crud import update_users_pic
 from src.database import get_async_session
-from src.library.service import test
 from PIL import Image
 
 from src.pages.router import router as router_pages, templates
@@ -42,8 +41,6 @@ app.include_router(router_admin)
 app.include_router(router_pages)    # <--
 app.include_router(router_lib)
 app.include_router(router_profile)
-
-app.include_router(test)
 
 
 app.mount(
