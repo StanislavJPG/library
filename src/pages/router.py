@@ -7,7 +7,7 @@ from starlette.templating import Jinja2Templates
 
 from src.admin.router import admin_panel_api, search_specific_book_from_database_api
 from src.auth.base_config import current_optional_user, current_optional_superuser
-from src.base.service import get_best_books
+from src.base.router import get_best_books_api
 from src.crud import delete_redis_cache_statement
 from src.database import get_async_session
 from src.library.router import library_search_api, get_read_page_api
@@ -55,7 +55,7 @@ async def get_read_page(request: Request, literature: str,
 
 @router.get('/')
 async def get_base_page(request: Request, user=Depends(current_optional_user),
-                        top_books_rating=Depends(get_best_books)):
+                        top_books_rating=Depends(get_best_books_api)):
     return templates.TemplateResponse(
         'base.html',
         {'request': request, 'user': user, 'books': top_books_rating['books'],

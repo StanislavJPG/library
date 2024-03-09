@@ -1,3 +1,5 @@
+import sys
+
 from sqlalchemy import select, insert, update, delete, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence

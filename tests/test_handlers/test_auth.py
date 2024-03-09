@@ -1,3 +1,4 @@
+import pytest
 from httpx import AsyncClient
 
 from tests.conftest import link
@@ -13,3 +14,21 @@ async def test_registration(test_client: AsyncClient):
         "username": "String"
     })
     assert response_reg.status_code == 201
+
+
+@pytest.mark.dependency(depends=["test_registration"])
+async def test_login(test_client: AsyncClient):
+    response_log = await test_client.post(f'{link}/auth/jwt/login', data={
+            "username": "user@example.com",
+            "password": "strings123",
+        })
+    assert response_log.status_code == 204
+
+
+@pytest.mark.dependency(depends=["test_registration"])
+async def test_bad_login(test_client: AsyncClient):
+    response_log = await test_client.post(f'{link}/auth/jwt/login', data={
+        "username": "bad_user@example.com",
+        "password": "strings123",
+    })
+    assert response_log.status_code == 400

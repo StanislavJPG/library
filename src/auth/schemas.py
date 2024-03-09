@@ -7,7 +7,7 @@ from pydantic import EmailStr, Field
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
     id: uuid.UUID
-    username: str = Field(aexample='Steve')
+    username: str = Field('Steve')
     email: EmailStr
     is_active: bool = True
     is_superuser: bool = False

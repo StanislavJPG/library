@@ -3,3 +3,9 @@ pythonpath = [
     ".", "src",
 ]
 asyncio_mode = "auto"
+markers = [
+    "dependency"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning"
+]

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user, current_user
-from src.crud import update_book_back_to_the_profile, delete_redis_cache_statement
+from src.crud import update_book_back_to_the_profile
 from src.database import get_async_session
 from src.profile.service import view_profile_information, delete_book, view_books
 
