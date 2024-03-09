@@ -6,3 +6,5 @@ abs.py
 pgdata/
 test_db.db
 __pycache__/
+__init__.py
+temp
