@@ -34,7 +34,7 @@ async def view_profile_information(session: AsyncSession, user=Depends(current_o
             # executing data in memory with redis
             data = await redis.executor(
                 data={'books': books_not_in_profile, 'image': profile_image, 'library': library},
-                ex=20)
+                ex=120)
 
         return data
     raise HTTPException(status_code=401)
@@ -53,7 +53,7 @@ async def delete_book(book_id: int, session: AsyncSession, user=Depends(current_
         # if user deleting book and didn't set any rating to it -
         # it deleting whole book from library by current user
         await crud.delete_book_from_library(session, user, book_id)
-    await crud.delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile')
+    await crud.delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile', 'best_books_rating')
 
 
 async def view_books(session: AsyncSession, book_name: str, page: int = 1,
@@ -81,6 +81,6 @@ async def view_books(session: AsyncSession, book_name: str, page: int = 1,
                                                            book_name=book_name, user=user)
         books = await redis.executor(
             data=book_pagination,
-            ex=20)
+            ex=120)
 
     return {'books': books, 'page': page}

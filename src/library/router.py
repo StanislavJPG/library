@@ -41,7 +41,6 @@ async def get_read_page_api(literature: str, num: int = Query(..., description='
         rating = await read_is_rating_exists(session=session, user=user, book_id=book_id)
     else:
         rating = None
-
     return {'book': book, 'rating': rating}
 
 
@@ -57,7 +56,7 @@ async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends
 @router.post('/save_book/{literature}', response_model=None)
 async def save_book_page_api(literature: str,
                              num: int = Query(..., description='Number', gt=0),
-                             user=Depends(current_optional_user), session: AsyncSession = Depends(get_async_session)):
+                             user=Depends(current_optional_user), session: AsyncSession = Depends(get_async_session)) -> None:
     # use save_book_db method to save book to database
     await save_book_database(book=literature, num=num, user=user, session=session)
 

@@ -5,7 +5,7 @@ from src.auth.base_config import current_optional_user
 from src.crud import read_is_book_exists, create_book_and_change_data_for_library, create_book_in_library, \
     read_is_book_saved_to_profile, update_book_back_to_profile, \
     read_book_id_from_library_by_curr_user, update_rating_by_book_and_curr_user, \
-    read_book_url_orig_by_url, get_url, read_book_id_by_url
+    read_book_url_orig_by_url, get_url, read_book_id_by_url, delete_redis_cache_statement
 from src.database import RedisCache
 from fastapi import status
 
@@ -15,7 +15,7 @@ from src.library.shemas import RatingService
 
 async def save_book_database(book: str, num: int, session: AsyncSession,
                              rating: int = None, user=Depends(current_optional_user)) -> None:
-    redis = RedisCache(f'user_profile.{user.id}')
+    # redis = RedisCache(f'user_profile.{user.id}')
     book_id = await read_is_book_exists(book, num, session)
 
     data = {
@@ -46,13 +46,13 @@ async def save_book_database(book: str, num: int, session: AsyncSession,
             else:
                 raise HTTPException(status_code=409, detail=status.HTTP_409_CONFLICT)
     # clearing all the cache after all the operations with book
-    await redis.delete()
+    # await redis.delete()
+    await delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile')
 
 
 async def save_rating_db(rating_schema: RatingService,
                          session: AsyncSession,
                          user=Depends(current_optional_user)) -> None:
-    redis = RedisCache(f'user_profile.{user.id}')
     # book_id returning book's id and url from table Book
     book = await get_book_id(session, rating_schema)
     # taking book id from table Library by current user (if it exists)
@@ -82,7 +82,7 @@ async def save_rating_db(rating_schema: RatingService,
 
     # when user making any operations with book in profile it updates hash by deleting it
     # (and then after updating a page it's making again)
-    await redis.delete()
+    await delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile', 'best_books_rating')
 
 
 async def url_reader_by_user(session: AsyncSession, book, num) -> str:
