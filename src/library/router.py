@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud import read_is_book_exists, read_is_rating_exists, read_is_book_in_database_by_title, \
     create_book_by_users_request
-from src.library.service import BookSearchService, url_reader_by_user, save_book_database, save_rating_db
+from src.library.scraper import BookSearchService
+from src.library.service import url_reader_by_user, save_book_database, save_rating_db
 from src.library.shemas import RatingService, BookCreate
 from src.auth.base_config import current_optional_user
 from src.database import get_async_session, async_session_maker

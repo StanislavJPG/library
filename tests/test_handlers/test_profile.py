@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.app.main import create_upload_file
 from src.database import RedisCache
 from src.profile.router import get_profile_api, delete_book_from_profile_api, save_book_back_to_profile_api
 from tests.conftest import link

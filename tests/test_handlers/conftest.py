@@ -38,7 +38,7 @@ class TestUser:
                 book_id = await session.scalar(select(Book.id))
                 return book_id
 
-    async def fetch_id(self, is_saved_to_profile: bool, rating: int = None):
+    async def fetch_id(self, is_saved_to_profile: bool = False, rating: int = None):
         async with async_session_maker() as session:
             async with session.begin():
                 user_id = await session.scalar(select(User.id).where(User.username == 'String'))
