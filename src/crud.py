@@ -1,14 +1,10 @@
-import sys
-
 from sqlalchemy import select, insert, update, delete, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
 
-from starlette.exceptions import HTTPException
-
 from src.auth.base_config import fastapi_users
 from src.auth.models import User
-from src.database import RedisCash
+from src.database import RedisCache
 from src.library.models import Book, Library
 from src.library.shemas import BookCreate
 
@@ -204,7 +200,7 @@ async def create_book_by_users_request(session: AsyncSession, book: str | BookCr
 
 
 async def delete_redis_cache_statement(*args) -> None:
-    redis = RedisCash()
+    redis = RedisCache()
     for arg in args:
         for instance in await redis.get_alike(arg):
             await redis.delete(instance)

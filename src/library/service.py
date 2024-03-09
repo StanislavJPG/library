@@ -10,7 +10,7 @@ from src.crud import read_is_book_exists, create_book_and_change_data_for_librar
     read_is_book_saved_to_profile, update_book_back_to_profile, \
     read_book_id_from_library_by_curr_user, update_rating_by_book_and_curr_user, read_book_directly_from_db, \
     read_book_url_orig_by_url, get_url, read_book_id_by_url
-from src.database import RedisCash
+from src.database import RedisCache
 from fastapi import status
 
 from src.library.shemas import RatingService
@@ -108,7 +108,7 @@ class BookSearchService:
             return image_url
 
     async def get_full_info(self) -> dict:
-        redis = RedisCash(f'{self.book}.full_data_book')
+        redis = RedisCache(f'{self.book}.full_data_book')
         is_cache_exists = await redis.check()
 
         if is_cache_exists:
@@ -137,7 +137,7 @@ class BookSearchService:
 
 async def save_book_database(book: str, num: int, session: AsyncSession,
                              rating: int = None, user=Depends(current_optional_user)) -> None:
-    redis = RedisCash(f'user_profile.{user.id}')
+    redis = RedisCache(f'user_profile.{user.id}')
     book_id = await read_is_book_exists(book, num, session)
 
     data = {
@@ -173,7 +173,7 @@ async def save_book_database(book: str, num: int, session: AsyncSession,
 
 async def save_rating_db(rating_schema: RatingService, session: AsyncSession, user=Depends(current_optional_user)
                          ) -> None:
-    redis = RedisCash(f'user_profile.{user.id}')
+    redis = RedisCache(f'user_profile.{user.id}')
     # book_id returning book's id and url from table Book
     book = await get_book_id(session, rating_schema)
     # taking book id from table Library by current user (if it exists)
@@ -212,7 +212,7 @@ async def url_reader_by_user(session: AsyncSession, book, num) -> str:
     It's created for getting book's ORIGINAL url directly from database if it exists
     But it will search books at first if it's not
     """
-    redis = RedisCash(f'{book.lower()}.{num}')
+    redis = RedisCache(f'{book.lower()}.{num}')
     query_book_search = BookSearchService(book)
 
     query_book = await read_book_url_orig_by_url(session=session, book=book, num=num)

@@ -34,7 +34,7 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
 
 
-class RedisCash:
+class RedisCache:
     """
     This class provides data cash logic with aioredis (async redis)
     """

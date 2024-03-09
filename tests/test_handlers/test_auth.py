@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from tests.conftest import link
 
 
+@pytest.mark.dependency()
 async def test_registration(test_client: AsyncClient):
     response_reg = await test_client.post(f'{link}/auth/register', json={
         "email": "user@example.com",
@@ -14,6 +15,18 @@ async def test_registration(test_client: AsyncClient):
         "username": "String"
     })
     assert response_reg.status_code == 201
+
+
+async def test_bad_registration(test_client: AsyncClient):
+    response_reg = await test_client.post(f'{link}/auth/register', json={
+        "email": "bad_user",
+        "password": 123,
+        "is_active": True,
+        "is_superuser": False,
+        "is_verified": False,
+        "username": 123
+    })
+    assert response_reg.status_code == 422
 
 
 @pytest.mark.dependency(depends=["test_registration"])

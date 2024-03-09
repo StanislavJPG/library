@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_user, current_optional_user
 import src.crud as crud
-from src.database import RedisCash
+from src.database import RedisCache
 
 
 async def view_profile_information(session: AsyncSession, user=Depends(current_optional_user)) -> dict | HTTPException:
@@ -15,7 +15,7 @@ async def view_profile_information(session: AsyncSession, user=Depends(current_o
     4. It uses hash by redis
     """
     if user:
-        redis = RedisCash(f'user_and_books_not_in_profile.{user.id}')
+        redis = RedisCache(f'user_and_books_not_in_profile.{user.id}')
         if await redis.check():
             data = await redis.get()
         else:
@@ -63,9 +63,9 @@ async def view_books(session: AsyncSession, book_name: str, page: int = 1,
     view_books() finding all user's books from database by its ID and is_saved_to_profile
     """
     if book_name:
-        redis = RedisCash(f'books_pagination_in_profile.{user.id}?page={page}&name={book_name}')
+        redis = RedisCache(f'books_pagination_in_profile.{user.id}?page={page}&name={book_name}')
     else:
-        redis = RedisCash(f'books_in_profile.{user.id}?page={page}')
+        redis = RedisCache(f'books_in_profile.{user.id}?page={page}')
 
     if page > 0:
         # offset here means "skip first {offset} rows and show all rows next to it"

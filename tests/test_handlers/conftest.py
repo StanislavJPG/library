@@ -8,6 +8,9 @@ from src.database import User
 from src.library.models import Library, Book
 from tests.conftest import async_session_maker
 
+test_book_name = 'ромео і джульєтта'
+book_num = 1
+
 
 @pytest.fixture(scope='function')
 async def override_get_async_session() -> Union[AsyncGenerator[AsyncSession, None], AsyncSession]:
@@ -28,11 +31,18 @@ class TestUser:
             raise NotImplemented
         return self._id
 
+    @property
+    async def book_id(self):
+        async with async_session_maker() as session:
+            async with session.begin():
+                book_id = await session.scalar(select(Book.id))
+                return book_id
+
     async def fetch_id(self, is_saved_to_profile: bool, rating: int = None):
         async with async_session_maker() as session:
             async with session.begin():
                 user_id = await session.scalar(select(User.id).where(User.username == 'String'))
-                book_id = await session.scalar(select(Book.id))
+                book_id = await self.book_id
                 await session.scalar(insert(Library).values(user_id=user_id, book_id=book_id,
                                                             rating=rating, is_saved_to_profile=is_saved_to_profile))
                 await session.commit()
