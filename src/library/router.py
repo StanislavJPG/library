@@ -7,7 +7,7 @@ from src.library.scraper import BookSearchService
 from src.library.service import url_reader_by_user, save_book_database, save_rating_db
 from src.library.shemas import RatingService, BookCreate
 from src.auth.base_config import current_optional_user
-from src.database import get_async_session, async_session_maker
+from src.database import get_async_session
 
 router = APIRouter(
     prefix='/api/library',
@@ -57,7 +57,7 @@ async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends
 @router.post('/save_book/{literature}', response_model=None)
 async def save_book_page_api(literature: str,
                              num: int = Query(..., description='Number', gt=0),
-                             user=Depends(current_optional_user), session=async_session_maker) -> None:
+                             user=Depends(current_optional_user), session: AsyncSession = Depends(get_async_session)):
     # use save_book_db method to save book to database
     await save_book_database(book=literature, num=num, user=user, session=session)
 

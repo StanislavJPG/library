@@ -67,7 +67,9 @@ async def read_is_book_saved_to_profile(session: AsyncSession, user: fastapi_use
 
 
 async def update_book_back_to_profile(session: AsyncSession, user: fastapi_users, book_id: Book) -> None:
-    await session.execute(update(Library).where((Library.user_id == str(user.id)) & (Library.book_id == book_id)))
+    await session.execute(update(Library).values(is_saved_to_profile=True).where(
+        (Library.user_id == str(user.id)) & (Library.book_id == book_id))
+    )
     await session.commit()
 
 

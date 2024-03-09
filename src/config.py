@@ -21,3 +21,8 @@ MAIL_PASS = os.environ.get('MAIL_PASS')
 
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
+
+TEST_REDIS_PORT = os.environ.get('TEST_REDIS_PORT')
+TEST_REDIS_HOST = os.environ.get('TEST_REDIS_HOST')
+
+SECRET = os.environ.get('SECRET')

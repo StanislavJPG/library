@@ -53,7 +53,7 @@ async def delete_book(book_id: int, session: AsyncSession, user=Depends(current_
         # if user deleting book and didn't set any rating to it -
         # it deleting whole book from library by current user
         await crud.delete_book_from_library(session, user, book_id)
-    await crud.delete_redis_cache_statement()
+    await crud.delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile')
 
 
 async def view_books(session: AsyncSession, book_name: str, page: int = 1,
