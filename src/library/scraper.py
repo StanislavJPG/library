@@ -3,7 +3,6 @@ from typing import Union
 import httpx
 from bs4 import BeautifulSoup as B_soup
 from sqlalchemy.ext.asyncio import AsyncSession
-import requests
 from src.crud import read_book_directly_from_db
 from src.database import RedisCache
 

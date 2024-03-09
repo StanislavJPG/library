@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends
 
 from src.crud import update_book_args_by_admin, read_specific_book_from_database_by_admin
 from src.database import RedisCache, get_async_session
-from src.library.models import Book
 from src.library.shemas import BookCreate
 
 

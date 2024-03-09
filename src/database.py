@@ -36,7 +36,7 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
 
 class RedisCache:
     """
-    This class provides data cash logic with aioredis (async redis)
+    This class provides data cache logic with aioredis (async redis)
     """
 
     REDIS = aioredis.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}')
@@ -54,7 +54,6 @@ class RedisCache:
         cached_data = await self.REDIS.get(self.value_name)
         data = json.loads(cached_data)
         await self.REDIS.close()
-
         return data
 
     async def get_alike(self, *values) -> list:
@@ -80,7 +79,6 @@ class RedisCache:
         # ex = None is permanent key in Redis
         await self.REDIS.set(name=self.value_name, value=serialized_data, ex=ex)
         await self.REDIS.close()
-
         return data
 
     async def delete(self, value: Any = None) -> None:

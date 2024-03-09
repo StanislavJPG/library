@@ -49,8 +49,9 @@ async def save_book_database(book: str, num: int, session: AsyncSession,
     await redis.delete()
 
 
-async def save_rating_db(rating_schema: RatingService, session: AsyncSession, user=Depends(current_optional_user)
-                         ) -> None:
+async def save_rating_db(rating_schema: RatingService,
+                         session: AsyncSession,
+                         user=Depends(current_optional_user)) -> None:
     redis = RedisCache(f'user_profile.{user.id}')
     # book_id returning book's id and url from table Book
     book = await get_book_id(session, rating_schema)

@@ -1,5 +1,3 @@
-from typing import Union
-
 from fastapi import Depends, APIRouter, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +17,7 @@ router = APIRouter(
 
 @router.get('/{literature}')
 async def library_search_api(literature: str, session: AsyncSession = Depends(get_async_session),
-                             user=Depends(current_optional_user)):
+                             user=Depends(current_optional_user)) -> dict:
     try:    # getting book by user's request
         query_book_search = BookSearchService(literature, session)
         search_result = await query_book_search.get_full_info()
@@ -32,7 +30,8 @@ async def library_search_api(literature: str, session: AsyncSession = Depends(ge
 
 @router.get('/read/{literature}')
 async def get_read_page_api(literature: str, num: int = Query(..., description='Number', gt=0),
-                            user=Depends(current_optional_user), session: AsyncSession = Depends(get_async_session)):
+                            user=Depends(current_optional_user),
+                            session: AsyncSession = Depends(get_async_session)) -> dict:
     book = await url_reader_by_user(session=session, book=literature, num=num)
     # use it to return full info about book
 
@@ -47,7 +46,7 @@ async def get_read_page_api(literature: str, num: int = Query(..., description='
 
 
 @router.post('/books/let_find', response_model=None)
-async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends(get_async_session)) -> Union[None]:
+async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends(get_async_session)) -> None:
     # user can make query to find book only if that book NOT in database already
     if await read_is_book_in_database_by_title(session=session, book=book) is None:
         await create_book_by_users_request(session=session, book=book)

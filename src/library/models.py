@@ -25,8 +25,6 @@ class Book(Base):
 class Library(Base):
     __tablename__ = "library"
 
-    # this is an association table, that takes id's from Book and User models as foreign keys
-
     id = Column(Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), primary_key=True)
     book_id = Column(Integer, ForeignKey(Book.id), primary_key=True)
@@ -36,5 +34,5 @@ class Library(Base):
     book = relationship("Book", back_populates="libraries")
     user = relationship(User, back_populates="libraries")
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}

@@ -2,7 +2,7 @@ from typing import Union, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import read_requested_books_for_admin, delete_redis_cache_statement
+from src.crud import read_requested_books_for_admin
 from src.library.models import Book
 from fastapi import APIRouter, HTTPException
 
