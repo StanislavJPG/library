@@ -2,7 +2,7 @@ from typing import Union, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import read_requested_books_for_admin
+from . import crud as admin_crud
 from src.library.models import Book
 from fastapi import APIRouter, HTTPException
 
@@ -22,5 +22,5 @@ class AdminPanel:
         else:
             raise HTTPException(status_code=403, detail={'Error': 'Forbidden'})
 
-        books = await read_requested_books_for_admin(session=session, offset=offset)
+        books = await admin_crud.read_requested_books_for_admin(session=session, offset=offset)
         return books

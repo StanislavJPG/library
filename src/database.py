@@ -8,6 +8,7 @@ from sqlalchemy import String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 
+# from src.auth.models import User
 from src.config import (DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, REDIS_HOST, REDIS_PORT,
                         TEST_REDIS_PORT, TEST_REDIS_HOST)
 
@@ -20,7 +21,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     profile_image: Mapped[str] = mapped_column(String)
 
 
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL, echo=True)
 async_session_maker = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False)
 

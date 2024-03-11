@@ -3,7 +3,7 @@ from typing import Union
 import httpx
 from bs4 import BeautifulSoup as B_soup
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.crud import read_book_directly_from_db
+import src.crud as base_crud
 from src.database import RedisCache
 
 
@@ -69,7 +69,7 @@ class BookSearchService:
                     book_set.add(url_book)
 
             # load book directly from database if book is in there
-            query_url_book = await read_book_directly_from_db(session=self.session, book=self.book)
+            query_url_book = await base_crud.read_book_directly_from_db(session=self.session, book=self.book)
 
             if query_url_book is not None:
                 book_set.add(query_url_book)

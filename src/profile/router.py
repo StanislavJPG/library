@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user, current_user
-from src.crud import update_book_back_to_the_profile
+import src.crud as base_crud
 from src.database import get_async_session
-from src.profile.service import view_profile_information, delete_book, view_books
+from src.profile.service import view_user_information_in_profile, delete_book, view_books
 
 router = APIRouter(
     prefix='/api',
@@ -16,13 +16,14 @@ router = APIRouter(
 @router.get('/profile')
 async def get_profile_api(session: AsyncSession = Depends(get_async_session), book_name: Optional[str] = None,
                           page: Optional[int] = 1, user=Depends(current_user)) -> dict:
-    profile_data = await view_profile_information(session, user)
+    user_profile_data = await view_user_information_in_profile(session, user)
     books_in_profile = await view_books(session=session, book_name=book_name, page=page, user=user)
 
     return {'books_in_profile': books_in_profile['books'],
             'page': books_in_profile['page'],
-            'books_not_in_profile': profile_data['books'], 'profile_image': profile_data['image'],
-            'library': profile_data['library']}
+            'books_not_in_profile': user_profile_data['books_not_in_profile'],
+            'profile_image': user_profile_data['profile_pic'],
+            'library': user_profile_data['library']}
 
 
 @router.delete('/books/{book_id}')
@@ -37,4 +38,4 @@ async def save_book_back_to_profile_api(book_id: int, user=Depends(current_optio
     """
     endpoint for change is_saved_to_profile to True (to save book to the profile)
     """
-    await update_book_back_to_the_profile(session=session, book_id=book_id, user=user)
+    await base_crud.update_book_back_to_the_profile(session=session, book_id=book_id, user=user)

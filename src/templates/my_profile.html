@@ -16,35 +16,42 @@
         <label for="file" id="upload-btn"><img class="profileImageDefaultBtn" src="{{ url_for('static', path='/img/user.png') }}"></label>
         <script src="/static/javascript/index.js"></script>
     </div>
-    <div>
-        <h1 class="text-muted">{{ user.username }}</h1>
-        {% if admin %}
-             <button onclick="window.location.href = '/admin_panel'" class="btn btn-dark btn-sm" style="margin-bottom: 10px;">Адмінка</button>
-        {% endif %}
-        <p><strong>Пошта:</strong> {{ user.email }}</p>
-        {% if user.is_verified %}
-        <strong>Пошта підтверджена</strong>
-        {% else %}
-        <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
-        <div id="popupContainer" class="popup-container">
-            <div class="popup-content">
-                <span class="close" id="closePopup">&times;</span>
-                <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
-                <div style="text-align: center;">
-                    <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти">
-                    <div style="margin-top: 10px;">
-                    <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
-                            onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
-                    </div>
-                    <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
-                    <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
+<div>
+    <h1 class="text-muted">{{ user.username }}</h1>
+    {% if admin %}
+         <button onclick="window.location.href = '/admin_panel'" class="btn btn-dark btn-sm" style="margin-bottom: 10px;">Адмінка</button>
+    {% endif %}
+    <p><strong>Пошта:</strong> {{ user.email }}</p>
+    {% if user.is_verified %}
+    <strong>Пошта підтверджена</strong>
+    {% else %}
+    <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>
+    <div id="popupContainer" class="popup-container">
+        <div class="popup-content">
+            <span class="close" id="closePopup">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 15px;">Підтвердження пошти</h2>
+            <div style="text-align: center;">
+                <input id="token" type="password" class="form-control" placeholder="Вставте ваш код підтвердження з пошти">
+                <div style="margin-top: 10px;">
+                <button style="font-weight:bold; margin-top: 15px;" class="btn btn-dark"
+                        onclick="acceptVerificationEmail(document.getElementById('token').value)"> Підтвердити</button>
+                </div>
+                <p style="margin-top: 15px;">Щоб відправити код підтвердження на пошту натисність: </p>
+                <button onclick="sendVerificationEmail('{{ user.email }}')" class="btn btn-dark"> Відправити код підтвердження на пошту</button>
                 </div>
             </div>
         </div>
-
         {% endif %}
     </div>
 </div>
+<script>
+    document.getElementById("showPopupButton").addEventListener("click", function() {
+        document.getElementById("popupContainer").style.display = "block";
+    });
+    document.getElementById("closePopup").addEventListener("click", function() {
+        document.getElementById("popupContainer").style.display = "none";
+    });
+</script>
 
 <div class="container_info" style="justify-content: center;">
     <div class="userProfile rounded" style="text-align: center;">
@@ -124,7 +131,7 @@
             <div class="center">
                 <h1 style="font-size: 40px; margin-bottom: 15px;" class="display-4">Історія оцінок книг</h1>
                 {% if books_not_in_profile|length != 0 %}
-                <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Останні 5 книг:</h1>
+                <h1 style="font-size: 18px; margin-bottom: 15px;" class="display-4">Останні 10 книг:</h1>
             </div>
         </div>
         <div style="flex-direction: column; display: flex;">

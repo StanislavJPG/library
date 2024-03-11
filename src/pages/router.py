@@ -96,3 +96,24 @@ async def admin_panel_page(request: Request, admin=Depends(current_optional_supe
         )
     else:
         raise HTTPException(status_code=404)
+
+
+@router.get('/logout', response_class=HTMLResponse)
+async def logout_page(request: Request, user=Depends(current_optional_user)):
+    return templates.TemplateResponse(
+        'logout.html', {'request': request, 'user': user}
+    )
+
+
+@router.get('/login', response_class=HTMLResponse)
+async def login_page(request: Request, user=Depends(current_optional_user)):
+    return templates.TemplateResponse(
+        'login.html', {'request': request, 'user': user}
+    )
+
+
+@router.get('/registration')
+async def registration_page(request: Request, user=Depends(current_optional_user)):
+    return templates.TemplateResponse(
+        'registration.html', {'request': request, 'user': user}
+    )

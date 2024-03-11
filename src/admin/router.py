@@ -6,7 +6,8 @@ from src.auth.base_config import current_superuser
 from fastapi.responses import HTMLResponse
 from fastapi import APIRouter, Depends
 
-from src.crud import update_book_args_by_admin, read_specific_book_from_database_by_admin
+from . import crud as admin_crud
+
 from src.database import RedisCache, get_async_session
 from src.library.shemas import BookCreate
 
@@ -24,13 +25,13 @@ async def create_book_api(book: BookCreate, session: AsyncSession = Depends(get_
     This is function made for managing books
     that users wants to add to the cite
     """
-    await update_book_args_by_admin(session=session, book=book)
+    await admin_crud.update_book_args_by_admin(session=session, book=book)
 
 
 @router.get('/search/{book_title}', response_model=BookCreate)
 async def search_specific_book_from_database_api(book_title: str,
                                                  session: AsyncSession = Depends(get_async_session)):
-    book = await read_specific_book_from_database_by_admin(session=session, book_title=book_title)
+    book = await admin_crud.read_specific_book_from_database_by_admin(session=session, book_title=book_title)
     return book
 
 

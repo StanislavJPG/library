@@ -1,7 +1,7 @@
 from fastapi import Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import read_books_for_top_rating
+import src.crud as base_crud
 from src.database import RedisCache, get_async_session
 
 router = APIRouter(prefix='/api/base', tags=['base'])
@@ -16,7 +16,7 @@ async def get_best_books_api(session: AsyncSession = Depends(get_async_session))
     if is_cache_exists:
         data = await redis.get()
     else:
-        books_for_rating = await read_books_for_top_rating(session=session)
+        books_for_rating = await base_crud.read_books_for_top_rating(session=session)
         # executing data with redis
         data = await redis.executor(data=books_for_rating, ex=120)
 

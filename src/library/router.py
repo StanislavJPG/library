@@ -1,8 +1,8 @@
 from fastapi import Depends, APIRouter, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import read_is_book_exists, read_is_rating_exists, read_is_book_in_database_by_title, \
-    create_book_by_users_request
+import src.crud as base_crud
+from . import crud as library_crud
 from src.library.scraper import BookSearchService
 from src.library.service import url_reader_by_user, save_book_database, save_rating_db
 from src.library.shemas import RatingService, BookCreate
@@ -36,9 +36,9 @@ async def get_read_page_api(literature: str, num: int = Query(..., description='
     # use it to return full info about book
 
     # here I should find book's rating
-    book_id = await read_is_book_exists(title=literature, num=num, session=session)
+    book_id = await library_crud.read_book_id(title=literature, num=num, session=session)
     if user:
-        rating = await read_is_rating_exists(session=session, user=user, book_id=book_id)
+        rating = await base_crud.read_is_rating_exists(session=session, user=user, book_id=book_id)
     else:
         rating = None
     return {'book': book, 'rating': rating}
@@ -47,8 +47,8 @@ async def get_read_page_api(literature: str, num: int = Query(..., description='
 @router.post('/books/let_find', response_model=None)
 async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends(get_async_session)) -> None:
     # user can make query to find book only if that book NOT in database already
-    if await read_is_book_in_database_by_title(session=session, book=book) is None:
-        await create_book_by_users_request(session=session, book=book)
+    if await library_crud.read_is_book_in_database_by_title(session=session, book=book) is None:
+        await library_crud.create_book_by_users_request(session=session, book=book)
     else:
         raise HTTPException(status_code=409)
 
@@ -56,7 +56,8 @@ async def create_temp_book_api(book: BookCreate, session: AsyncSession = Depends
 @router.post('/save_book/{literature}', response_model=None)
 async def save_book_page_api(literature: str,
                              num: int = Query(..., description='Number', gt=0),
-                             user=Depends(current_optional_user), session: AsyncSession = Depends(get_async_session)) -> None:
+                             user=Depends(current_optional_user),
+                             session: AsyncSession = Depends(get_async_session)) -> None:
     # use save_book_db method to save book to database
     await save_book_database(book=literature, num=num, user=user, session=session)
 
