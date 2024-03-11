@@ -51,14 +51,7 @@
         <div class="user-profile rounded">
             <h1 class="display-4 center" style="font-size: 45px; margin: 50px;">Топ 10 найкращих книг за версію користувачів</h1>
             <div class="books-container" style="margin-top: 80px;">
-                {% for book in books %}
-                {% set lst = [] %}
-                {% for library_obj in library %}
-                    {% if library_obj['book_id'] == book['id'] %}
-                        {% set result = lst.append(library_obj['rating']) %}
-                    {% endif %}
-                {% endfor %}
-                {% if (lst|sum / lst|length)|round(3) >= 4 %}
+                {% for book in top_books_rating %}
                     <div class="book-info rounded">
                         <div style="text-align: center;" class="clickable_img" onclick="window.open('{{ book['url'] }}')">
                             <img src="{{ book['image'] }}" alt="Book hardcover" style="width:180px;height:260px;">
@@ -69,14 +62,13 @@
                             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" />
                             <link href="{{ url_for('static', path='/css/stars.css') }}" rel="stylesheet">
                             <hr style="height: 1px; border-width: 0 ; color: gray; background-color: gray">
-                            <p style="margin-top: 20px; font-size: 17px;" class=" owner-id">Середній рейтинг книги серед користувачів: {{ (lst|sum / lst|length)|round(3) }} <span class="fa fa-star icon"></span></p>
-                            <p style="font-size: 17px;" >Користувачів оцінило книгу: {{ lst|length }} <i class="fa fa-user" style="color: grey;"></i></p>
+                            <p style="margin-top: 20px; font-size: 17px;" class=" owner-id">Середній рейтинг книги серед користувачів: {{ book['average'] }} <span class="fa fa-star icon"></span></p>
+                            <p style="font-size: 17px;" >Користувачів оцінило книгу: {{ book['counter'] }} <i class="fa fa-user" style="color: grey;"></i></p>
                             <button class="btn btn-outline-secondary btn-sm" id="buttons-profile" onclick="window.open('{{ book['url'] }}','_blank')" type="button">
                                 Читати цю книгу
                             </button>
                         </div>
                     </div>
-                {% endif %}
                 {% endfor %}
             </div>
         </div>

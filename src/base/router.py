@@ -21,3 +21,4 @@ async def get_best_books_api(session: AsyncSession = Depends(get_async_session))
         data = await redis.executor(data=books_for_rating, ex=120)
 
     return data
+

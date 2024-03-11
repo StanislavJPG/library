@@ -58,8 +58,7 @@ async def get_base_page(request: Request, user=Depends(current_optional_user),
                         top_books_rating=Depends(get_best_books_api)):
     return templates.TemplateResponse(
         'base.html',
-        {'request': request, 'user': user, 'books': top_books_rating['books'],
-         'library': top_books_rating['library']}
+        {'request': request, 'user': user, 'top_books_rating': top_books_rating}
     )
 
 

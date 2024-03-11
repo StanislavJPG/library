@@ -1,9 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user, current_user
 import src.crud as base_crud
+from src.auth.models import User
 from src.database import get_async_session
 from src.profile.service import view_user_information_in_profile, delete_book, view_books
 

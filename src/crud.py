@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, ScalarResult
+from sqlalchemy import select, update, ScalarResult, func, cast, Float, join, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import fastapi_users
@@ -84,32 +84,22 @@ async def delete_redis_cache_statement(*args) -> None:
             await redis.delete(instance)
 
 
-async def read_books_for_top_rating(session: AsyncSession) -> dict:
-    books_in_library_with_rating = await session.scalars(
-        select(Library.book_id)
-        .where(
-            Library.rating.is_not(None)
+async def read_books_for_top_rating(session: AsyncSession) -> list[dict]:
+    ratings_avg = await session.execute(
+        select(
+            Book,
+            cast(func.avg(Library.rating), Float).label('avg_rating'),
+            cast(func.count(Library.rating), Integer).label('users_counter')
         )
-    )
-    # getting all the books that has any rating (limit 10)
-    get_all_books_with_any_rating = await session.scalars(
-        select(Book)
-        .where(
-            (Book.id.in_(books_in_library_with_rating.all())))
+        .select_from(
+            join(Library, Book)
+        )
+        .where(Library.rating.is_not(None))
+        .group_by(Book)
+        .having(cast(func.avg(Library.rating), Float).label('avg_rating') >= 4)
         .limit(10)
-    )
-
-    # serializing data to list[dict] for comfortable view
-    books: list[dict] = [entry.as_dict() for entry in get_all_books_with_any_rating.all()]
-
-    users_ratings_counter = await session.scalars(
-        select(Library)
-        .where(
-            Library.rating.is_not(None)
-        )
+        .order_by(cast(func.avg(Library.rating), Float).label('avg_rating').desc())
     )
     # serializing data to list[dict] for comfortable view
-    library: list[dict] = [{k: v for k, v in entry.as_dict().items() if k != 'user_id'}
-                           for entry in users_ratings_counter.all()]
-
-    return {'books': books, 'library': library}
+    top_books_statistic: list[dict] = [{**c[0].as_dict(), "average": c[1], "counter": c[2]} for c in ratings_avg.all()]
+    return top_books_statistic
