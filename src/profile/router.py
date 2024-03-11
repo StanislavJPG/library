@@ -1,13 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_optional_user, current_user
 import src.crud as base_crud
-from src.auth.models import User
 from src.database import get_async_session
-from src.profile.service import view_user_information_in_profile, delete_book, view_books
+from src.profile.service import view_books_not_in_profile, delete_book, view_paginated_books, view_profile_picture
 
 router = APIRouter(
     prefix='/api',
@@ -18,14 +16,15 @@ router = APIRouter(
 @router.get('/profile')
 async def get_profile_api(session: AsyncSession = Depends(get_async_session), book_name: Optional[str] = None,
                           page: Optional[int] = 1, user=Depends(current_user)) -> dict:
-    user_profile_data = await view_user_information_in_profile(session, user)
-    books_in_profile = await view_books(session=session, book_name=book_name, page=page, user=user)
+    books_not_in_profile = await view_books_not_in_profile(session, user)
+    books_in_profile = await view_paginated_books(session=session, book_name=book_name, page=page, user=user)
+    user_pic = await view_profile_picture(session=session, user=user)
 
     return {'books_in_profile': books_in_profile['books'],
             'page': books_in_profile['page'],
-            'books_not_in_profile': user_profile_data['books_not_in_profile'],
-            'profile_image': user_profile_data['profile_pic'],
-            'library': user_profile_data['library']}
+            'books_not_in_profile': books_not_in_profile['books_not_in_profile'],
+            'profile_image': user_pic,
+            'library': books_not_in_profile['library']}
 
 
 @router.delete('/books/{book_id}')

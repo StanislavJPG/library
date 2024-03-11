@@ -42,7 +42,7 @@ async def save_book_database(book: str, num: int, session: AsyncSession,
                 raise HTTPException(status_code=409, detail=status.HTTP_409_CONFLICT)
     # clearing all the cache after all the operations with book
     # await redis.delete()
-    await base_crud.delete_redis_cache_statement(f'user_and_books_not_in_profile', 'books_in_profile')
+    await base_crud.delete_redis_cache_statement(f'books_not_in_profile', 'books_in_profile')
 
 
 async def save_rating_db(rating_schema: RatingService,
@@ -77,7 +77,7 @@ async def save_rating_db(rating_schema: RatingService,
 
     # when user making any operations with book in profile it updates hash by deleting it
     # (and then after updating a page it's making again)
-    await base_crud.delete_redis_cache_statement(f'user_and_books_not_in_profile',
+    await base_crud.delete_redis_cache_statement(f'books_not_in_profile',
                                                  'books_in_profile',
                                                  'best_books_rating')
 

@@ -43,6 +43,6 @@ async def admin_panel_api(page: Optional[int] = 1, session: AsyncSession = Depen
         books_request = await redis.get()
     else:
         admin_panel_instance = await AdminPanel(page).get_users_requests(session=session)
-        books_request = await redis.executor(data=[el.as_dict() for el in admin_panel_instance],
+        books_request = await redis.executor(data=admin_panel_instance,
                                              ex=10)
     return {'books_request': books_request, 'page': page}

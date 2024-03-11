@@ -30,18 +30,6 @@ async def get_url(title: str, num: int) -> str:
     return url
 
 
-async def read_all_books_ids_that_not_in_profile(session: AsyncSession, user: fastapi_users) -> ScalarResult[Library]:
-    stmt = await session.scalars(
-        select(Library.book_id)
-        .where(
-            (Library.user_id == str(user.id)) &
-            (Library.is_saved_to_profile.is_(False)) &
-            (Library.rating.is_not(None))
-        )
-    )
-    return stmt
-
-
 async def read_is_book_saved_to_profile(session: AsyncSession, user: User, book_id: Book | int
                                         ) -> Library | None:
     is_book_saved_to_profile = await session.scalar(
@@ -64,7 +52,7 @@ async def update_book_back_to_the_profile(session: AsyncSession, book_id: int, u
         )
     )
     await session.commit()
-    await delete_redis_cache_statement(f'books_in_profile', f'user_and_books_not_in_profile')
+    await delete_redis_cache_statement(f'books_in_profile', f'books_not_in_profile')
 
 
 async def read_is_rating_exists(session: AsyncSession, user: User, book_id: int) -> Library:

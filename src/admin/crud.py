@@ -6,28 +6,45 @@ from src.library.shemas import BookCreate
 
 
 async def update_book_args_by_admin(session: AsyncSession, book: BookCreate) -> None:
-    stmt = await session.scalar(select(Book.id).where(Book.id == book.id))
-    await session.execute(update(Book).values(
-        title=book.title,
-        image=book.image,
-        description=book.description,
-        url=book.url,
-        url_orig=book.url_orig
-    ).where(Book.id == int(stmt)))
+    await session.execute(
+        update(Book)
+        .values(
+            title=book.title,
+            image=book.image,
+            description=book.description,
+            url=book.url,
+            url_orig=book.url_orig
+        )
+        .filter_by(
+            id=session.scalar(
+                select(Book.id)
+                .filter_by(id=book.id)))
+        )
     await session.commit()
 
 
 async def read_specific_book_from_database_by_admin(session: AsyncSession, book_title: str = None) -> Book | None:
     if book_title:
-        stmt = await session.scalar(select(Book).where(Book.title.like(f'%{book_title}%').__or__(
-            Book.title.like(f'%{book_title.title()}%'))))
+        stmt = await session.scalar(
+            select(Book)
+            .where(
+                Book.title.like(f'%{book_title}%')
+                .__or__(Book.title.like(f'%{book_title.title()}%')))
+        )
     else:
         return None
     return stmt
 
 
 async def read_requested_books_for_admin(session: AsyncSession, offset: int) -> Sequence[Book]:
-    stmt = await session.scalars(select(Book).where(
-        (Book.title.isnot(None)) & (Book.image.isnot(None)) &
-        (Book.url_orig.is_(None))).offset(offset).limit(4))
-    return stmt.all()
+    stmt = await session.execute(
+        select(Book.id, Book.title, Book.image)
+        .where(
+            (Book.title.isnot(None)) &
+            (Book.url_orig.is_(None))
+        )
+        .offset(offset)
+        .limit(4))
+    return [{"id": c[0],
+             "title": c[1],
+             "image": c[2]} for c in stmt.all()]

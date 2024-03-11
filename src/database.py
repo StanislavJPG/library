@@ -39,7 +39,6 @@ class RedisCache:
     """
     This class provides data cache logic with aioredis (async redis)
     """
-
     REDIS = aioredis.from_url(f'redis://{TEST_REDIS_HOST}:{TEST_REDIS_PORT}')
 
     def __init__(self, value: str = None) -> None:
@@ -65,7 +64,7 @@ class RedisCache:
 
     async def get_alike(self, *values) -> list:
         """
-        This is method that aims to search keys that's looks like values args
+        This method aims to search keys that's looks like values args in redis
         """
         try:
             redis_keys = await self.REDIS.keys()

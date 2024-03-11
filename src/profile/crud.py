@@ -2,7 +2,6 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-import src.crud as base_crud
 from src.library.models import Library, Book
 
 
@@ -31,10 +30,16 @@ async def read_all_library_columns_by_current_user(session: AsyncSession, user: 
 
 
 async def read_books_that_not_in_profile_with_rating(session: AsyncSession, user: User) -> list[dict]:
-    books_ids = await base_crud.read_all_books_ids_that_not_in_profile(session, user)
     stmt = await session.execute(
         select(Book.id, Book.title, Book.image, Book.url)
-        .where(Book.id.in_(books_ids.all()))
+        .where(Book.id.in_(
+            select(Library.book_id)
+            .where(
+                (Library.user_id == str(user.id)) &
+                (Library.is_saved_to_profile.is_(False)) &
+                (Library.rating.is_not(None))
+            )
+        ))
         .limit(10)
     )
     return [{"id": c[0],
@@ -43,7 +48,8 @@ async def read_books_that_not_in_profile_with_rating(session: AsyncSession, user
              "url": c[3]} for c in stmt.all()]
 
 
-async def update_saved_profile(session: AsyncSession, book_id: int, is_saved_to_profile: bool, user: User) -> None:
+async def update_saved_profile(session: AsyncSession, book_id: int,
+                               is_saved_to_profile: bool, user: User) -> None:
     await session.execute(
         update(Library)
         .where(
