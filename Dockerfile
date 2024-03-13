@@ -1,10 +1,14 @@
 FROM python:3.11
 LABEL authors="stanislavjpg"
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR .
 
-RUN mkdir /library
+COPY requirements.txt .
 
-WORKDIR /library
+RUN pip install -r requirements.txt
 
+COPY . .
 
+EXPOSE 8000
+
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

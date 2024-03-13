@@ -1,5 +1,5 @@
 import json
-import aioredis
+from redis import asyncio as aioredis
 from typing import AsyncGenerator, Union, Any
 
 from fastapi import Depends
@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 
 # from src.auth.models import User
-from src.config import (DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, REDIS_HOST, REDIS_PORT,
-                        TEST_REDIS_PORT, TEST_REDIS_HOST)
+from src.config import (DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, REDIS_HOST, REDIS_PORT)
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 Base = declarative_base()
@@ -39,7 +38,7 @@ class RedisCache:
     """
     This class provides data cache logic with aioredis (async redis)
     """
-    REDIS = aioredis.from_url(f'redis://{TEST_REDIS_HOST}:{TEST_REDIS_PORT}')
+    REDIS = aioredis.from_url(f'redis://localhost:{REDIS_PORT}')
 
     def __init__(self, value: str = None) -> None:
         self.value_name = value
