@@ -1,0 +1,42 @@
+version: "3.0"
+services:
+  db:
+    container_name: "db"
+    image: postgres:16.2-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5421:5432"
+    networks:
+      - custom
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - custom
+
+  app:
+    build:
+      context: .
+    container_name: fastapi_app
+    command: ["/fastapi_app/docker/app.sh"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - custom
+
+networks:
+  custom:
+    driver: bridge

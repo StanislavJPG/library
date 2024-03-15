@@ -38,7 +38,7 @@ class RedisCache:
     """
     This class provides data cache logic with aioredis (async redis)
     """
-    REDIS = aioredis.from_url(f'redis://localhost:{REDIS_PORT}')
+    REDIS = aioredis.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}')
 
     def __init__(self, value: str = None) -> None:
         self.value_name = value

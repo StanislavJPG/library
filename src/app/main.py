@@ -16,9 +16,9 @@ from src.library.router import router as router_lib
 from src.profile.router import router as router_profile
 from src.base.router import router as router_base
 
+from fastapi.middleware.cors import CORSMiddleware
 from src.admin.router import router as router_admin
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title='Library'
