@@ -7,14 +7,19 @@ import src.crud as base_crud
 from src.database import RedisCache
 
 
-async def view_profile_picture(session: AsyncSession, user=Depends(current_optional_user)) -> dict:
-    redis = RedisCache(f'user_pic.{user.id}')
-    if await redis.check():
+async def view_profile_info(user=Depends(current_optional_user)) -> dict:
+    redis = RedisCache(f'user_data.{user.id}')
+    if await redis.exist():
         data = await redis.get()
     else:
-        # this is query to get user's profile pic
-        profile_image = await profile_crud.read_users_profile_image(session, user)
-        data = await redis.executor(data=profile_image, ex=120)
+        # this is query to get whole user's information
+        user_info = {'profile_image': user.as_dict()['profile_image'],
+                     'username': user.as_dict()['username'],
+                     'email': user.as_dict()['email'],
+                     'is_verified': user.as_dict()['is_verified'],
+                     'is_superuser': user.as_dict()['is_superuser']}
+
+        data = await redis.executor(data=user_info, ex=120)
     return data
 
 
@@ -29,7 +34,7 @@ async def view_books_not_in_profile(session: AsyncSession,
     """
     if user:
         redis = RedisCache(f'books_not_in_profile.{user.id}')
-        if await redis.check():
+        if await redis.exist():
             data = await redis.get()
         else:
             # here I'm getting all library columns by current user
@@ -65,7 +70,7 @@ async def view_paginated_books(session: AsyncSession, book_name: str, page: int 
     else:
         raise HTTPException(status_code=403, detail={'Error': 'Forbidden'})
 
-    if await redis.check():
+    if await redis.exist():
         books = await redis.get()
     else:
         book_pagination = await profile_crud.read_books_in_profile(session=session, offset=offset,

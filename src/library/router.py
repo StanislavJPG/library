@@ -20,7 +20,7 @@ async def library_search_api(literature: str, session: AsyncSession = Depends(ge
                              user=Depends(current_optional_user)) -> dict:
     try:    # getting book by user's request
         query_book_search = BookSearchService(literature, session)
-        search_result = await query_book_search.get_full_info()
+        search_result = await query_book_search.get_full_book_info()
     except (ValueError, AttributeError, KeyError):
         error_desc = 'Скоріш за все, ми не знайшли цю книгу :('
         return {'error': error_desc, 'user': user}

@@ -39,7 +39,7 @@ async def search_specific_book_from_database_api(book_title: str,
 async def admin_panel_api(page: Optional[int] = 1, session: AsyncSession = Depends(get_async_session)) -> dict:
     redis = RedisCache('admin_panel')
 
-    if await redis.check():
+    if await redis.exist():
         books_request = await redis.get()
     else:
         admin_panel_instance = await AdminPanel(page).get_users_requests(session=session)

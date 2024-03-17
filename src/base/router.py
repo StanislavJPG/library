@@ -11,9 +11,8 @@ router = APIRouter(prefix='/api/base', tags=['base'])
 async def get_best_books_api(session: AsyncSession = Depends(get_async_session)) -> dict:
     # Redis instance with value name
     redis = RedisCache('best_books_rating')
-    is_cache_exists = await redis.check()
 
-    if is_cache_exists:
+    if await redis.exist():
         data = await redis.get()
     else:
         books_for_rating = await base_crud.read_books_for_top_rating(session=session)

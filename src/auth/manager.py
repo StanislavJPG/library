@@ -30,7 +30,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         self, user: User, token: str, request: Optional[Request] = None
     ):
         email = EmailMessage()
-        email['Subject'] = 'Підтвердити пошту'
+        email['Subject'] = 'Підтвердження пошти'
         email['From'] = MAIL_NAME
         email['To'] = user.email
 

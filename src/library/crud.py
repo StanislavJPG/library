@@ -1,9 +1,9 @@
 from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import get_url
 from src.auth.models import User
 from src.library.models import Book, Library
+from src.library.service import get_url
 from src.library.shemas import BookCreate
 
 

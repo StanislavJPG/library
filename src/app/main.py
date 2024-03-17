@@ -40,7 +40,7 @@ app.add_middleware(
 
 
 app.include_router(router_admin)
-app.include_router(router_pages)    # <--
+app.include_router(router_pages)    # <--templates
 app.include_router(router_lib)
 app.include_router(router_profile)
 app.include_router(router_base)

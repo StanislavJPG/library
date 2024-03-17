@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, ScalarResult, func, cast, Float, join, Integer
+from sqlalchemy import select, update, func, cast, Float, join, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import fastapi_users
@@ -23,11 +23,6 @@ async def update_users_pic(session: AsyncSession, user: fastapi_users, token: st
     stmt = update(User).values(profile_image=token).filter_by(id=str(user.id))
     await session.execute(stmt)
     await session.commit()
-
-
-async def get_url(title: str, num: int) -> str:
-    url = f'http://127.0.0.1:8000/read/{title.lower()}?num={num}'
-    return url
 
 
 async def read_is_book_saved_to_profile(session: AsyncSession, user: User, book_id: Book | int
@@ -73,6 +68,11 @@ async def delete_redis_cache_statement(*args) -> None:
 
 
 async def read_books_for_top_rating(session: AsyncSession) -> list[dict]:
+    """
+    :param session:
+    :return: list[dict] with values that was counted from database
+    (using type of list because of iteration needs for the frontend jinja)
+    """
     ratings_avg = await session.execute(
         select(
             Book,

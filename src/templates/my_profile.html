@@ -8,7 +8,7 @@
 <div id="userProfile" style="margin-left: 650px;" class="rounded">
     <div class="profileImage">
         {% if profile_image is not none %}
-        <img src="http://127.0.0.1:8000/static/images/{{ profile_image }}" class="uploadButton photo">
+        <img src="http://127.0.0.1:8000/static/images/{{ user['profile_image'] }}" class="uploadButton photo">
         {% else %}
         <img src="{{ url_for('static', path='/img/capture.png') }}" class="uploadButton photo">
         {% endif %}
@@ -17,12 +17,12 @@
         <script src="/static/javascript/index.js"></script>
     </div>
 <div>
-    <h1 class="text-muted">{{ user.username }}</h1>
-    {% if admin %}
+    <h1 class="text-muted">{{ user['username'] }}</h1>
+    {% if user['is_superuser'] is true %}
          <button onclick="window.location.href = '/admin_panel'" class="btn btn-dark btn-sm" style="margin-bottom: 10px;">Адмінка</button>
     {% endif %}
-    <p><strong>Пошта:</strong> {{ user.email }}</p>
-    {% if user.is_verified %}
+    <p><strong>Пошта:</strong> {{ user['email'] }}</p>
+    {% if user['is_verified'] %}
     <strong>Пошта підтверджена</strong>
     {% else %}
     <p>Пошта не підтверджена: <button style="margin-bottom: 7px" id="showPopupButton" class="btn btn-dark">Підтвердити пошту</button></p>

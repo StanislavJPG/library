@@ -18,3 +18,6 @@ class User(Base):
     profile_image = Column(String)
 
     libraries = relationship("Library", back_populates="user")
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}

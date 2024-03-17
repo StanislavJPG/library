@@ -22,7 +22,7 @@ async def save_book_database(book: str, num: int, session: AsyncSession,
     }
     # Creating book in tables (Book, Library) if book is not exists in database
     if book_id is None:
-        info_book = await BookSearchService(book).get_full_info()
+        info_book = await BookSearchService(book).get_full_book_info()
         data = await library_crud.create_book_and_change_data_for_library(book, num, data, info_book, session)
         await library_crud.create_book_in_library(session, **data)
     else:
@@ -94,7 +94,7 @@ async def url_reader_by_user(session: AsyncSession, book, num) -> str:
     query_book = await library_crud.read_book_url_orig_by_url(session=session, book=book, num=num)
 
     if query_book is None:
-        book_func = await query_book_search.book_url_getter_to_read(num)
+        book_func = await query_book_search.get_read_url(num)
         book_url = book_func['book']
     else:
         book_url = query_book
@@ -108,7 +108,12 @@ async def get_book_id(session: AsyncSession, rating_schema: RatingService) -> di
     """
     Taking specific book id from database
     """
-    url = await library_crud.get_url(rating_schema.title, rating_schema.num)
+    url = await get_url(rating_schema.title, rating_schema.num)
     book_id = await library_crud.read_book_id_by_url(session, rating_schema.title,
                                                      rating_schema.num, url_orig=rating_schema.current_book_url)
     return {'book_id': book_id, 'url': url}
+
+
+async def get_url(title: str, num: int) -> str:
+    url = f'http://127.0.0.1:8000/read/{title.lower()}?num={num}'
+    return url

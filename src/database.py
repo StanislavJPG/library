@@ -8,7 +8,6 @@ from sqlalchemy import String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 
-# from src.auth.models import User
 from src.config import (DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, REDIS_HOST, REDIS_PORT)
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -18,6 +17,9 @@ Base = declarative_base()
 class User(SQLAlchemyBaseUserTableUUID, Base):
     username: Mapped[str] = mapped_column(String)
     profile_image: Mapped[str] = mapped_column(String)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 engine = create_async_engine(DATABASE_URL, echo=True)
@@ -43,7 +45,10 @@ class RedisCache:
     def __init__(self, value: str = None) -> None:
         self.value_name = value
 
-    async def check(self) -> Union[True, None]:
+    async def exist(self) -> Union[True, None]:
+        """
+        :return: True if cache for current data already exists or None if it's not
+        """
         try:
             cached_data = await self.REDIS.get(self.value_name)
             if cached_data:
@@ -53,6 +58,9 @@ class RedisCache:
             await self.REDIS.close()
 
     async def get(self) -> dict:
+        """
+        :return: dict with redis cache data
+        """
         try:
             cached_data = await self.REDIS.get(self.value_name)
             data = json.loads(cached_data)

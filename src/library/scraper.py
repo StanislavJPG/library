@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Union
 
 import httpx
@@ -7,19 +8,46 @@ import src.crud as base_crud
 from src.database import RedisCache
 
 
-class BookSearchService:
-    HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+class AbstractBookService(ABC):
+    @abstractmethod
+    async def __search_book_title(self) -> Union[str, list]:
+        ...
 
-    SEARCH_PATTERN = 'https://www.google.com/search?q='
+    @abstractmethod
+    async def __complex_book_scraper(self) -> dict:
+        ...
+
+    @classmethod
+    @abstractmethod
+    async def __get_page_content(cls, url: str) -> B_soup:
+        ...
+
+    @abstractmethod
+    async def __search_book_image(self) -> str:
+        ...
+
+    @abstractmethod
+    async def get_full_book_info(self) -> dict:
+        ...
+
+    @abstractmethod
+    async def get_read_url(self, num: int) -> dict:
+        ...
+
+
+class BookSearchService(AbstractBookService):
+    _HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
+    _SEARCH_PATTERN = 'https://www.google.com/search?q='
 
     def __init__(self, book: str, session: AsyncSession = None) -> None:
         self.book = book
         self.session = session
 
-    async def title_search(self) -> Union[str, list]:
-        async with httpx.AsyncClient(headers=self.HEADERS) as client:
-            url_wiki = self.SEARCH_PATTERN + f'книга {self.book} site:uk.wikipedia.org'
+    async def __search_book_title(self) -> Union[str, list]:
+        async with httpx.AsyncClient(headers=self._HEADERS) as client:
+            url_wiki = self._SEARCH_PATTERN + f'книга {self.book} site:uk.wikipedia.org'
             response_wiki = await client.get(url_wiki)
             bs_wiki = B_soup(response_wiki.text, 'lxml')
             data_wiki = bs_wiki.find_all('div', class_='MjjYud')
@@ -35,19 +63,19 @@ class BookSearchService:
             return []
         return info
 
-    async def modified_book_getter(self) -> dict:
+    async def __complex_book_scraper(self) -> dict:
         """
         This is general method that implements book search logic
         """
-        async with httpx.AsyncClient(headers=self.HEADERS) as client:
-            title_from_wiki = await self.title_search()  # take book title from wiki, to extend search result
+        async with httpx.AsyncClient(headers=self._HEADERS) as client:
+            title_from_wiki = await self.__search_book_title()  # take book title from wiki, to extend search result
 
             urls = []
             for query in [self.book, title_from_wiki]:
-                search_url = self.SEARCH_PATTERN + f'читати {query} book filetype: pdf'
+                search_url = self._SEARCH_PATTERN + f'читати {query} book filetype: pdf'
                 urls.append(search_url)
 
-            search_url_wiki = self.SEARCH_PATTERN + f'книга {title_from_wiki} site:uk.wikipedia.org'
+            search_url_wiki = self._SEARCH_PATTERN + f'книга {title_from_wiki} site:uk.wikipedia.org'
             urls.append(search_url_wiki)
             scraper_results = []
 
@@ -76,17 +104,17 @@ class BookSearchService:
 
             full_info = scraper_results[-1].find('a').get('href')  # this is full info from wiki
 
-            return {'book_lst': list(book_set), 'full_info': full_info}
+            return {'book_urls_lst': list(book_set), 'full_info': full_info}
 
     @classmethod
-    async def get_page(cls, url: str) -> B_soup:
-        async with httpx.AsyncClient(headers=cls.HEADERS) as client:
+    async def __get_page_content(cls, url: str) -> B_soup:
+        async with httpx.AsyncClient(headers=cls._HEADERS) as client:
             page = await client.get(url)
             soup = B_soup(page.content, 'lxml')
             return soup
 
-    async def image_getter(self) -> str:
-        async with httpx.AsyncClient(headers=self.HEADERS) as client:
+    async def __search_book_image(self) -> str:
+        async with httpx.AsyncClient(headers=self._HEADERS) as client:
             image_search_pattern = 'https://images.search.yahoo.com/search/images?p='
             # yeah:) I'm getting images from yahoo:)
 
@@ -97,27 +125,26 @@ class BookSearchService:
             image_url = bs.find('img', class_='').get('src')
             return image_url
 
-    async def get_full_info(self) -> dict:
+    async def get_full_book_info(self) -> dict:
         redis = RedisCache(f'{self.book}.full_data_book')
-        is_cache_exists = await redis.check()
 
-        if is_cache_exists:
+        if await redis.exist():
             data = await redis.get()
         else:
-            urls = await self.modified_book_getter()
-            page = await self.get_page(urls['full_info'])
+            url = await self.__complex_book_scraper()
+            page = await self.__get_page_content(url['full_info'])
 
-            image = await self.image_getter()
+            image = await self.__search_book_image()
             title = page.find('span', class_='mw-page-title-main').text
             description = page.find('p')
 
             data = await redis.executor(data={'image': image, 'title': title,
-                                              'description': description.text, 'urls': urls['book_lst']},
+                                              'description': description.text, 'urls': url['book_urls_lst']},
                                         ex=180)
         return data
 
-    async def book_url_getter_to_read(self, num: int) -> dict:
-        info_book = await self.get_full_info()
+    async def get_read_url(self, num: int) -> dict:
+        info_book = await self.get_full_book_info()
 
         book = info_book['urls'][abs(num) % len(info_book['urls'])]
         # it's important if user trying to read more books than exists atm

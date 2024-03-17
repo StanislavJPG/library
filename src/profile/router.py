@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.base_config import current_optional_user, current_user
 import src.crud as base_crud
 from src.database import get_async_session
-from src.profile.service import view_books_not_in_profile, delete_book, view_paginated_books, view_profile_picture
+from src.profile.service import view_books_not_in_profile, delete_book, view_paginated_books, view_profile_info
 
 router = APIRouter(
     prefix='/api',
@@ -18,12 +18,12 @@ async def get_profile_api(session: AsyncSession = Depends(get_async_session), bo
                           page: Optional[int] = 1, user=Depends(current_user)) -> dict:
     books_not_in_profile = await view_books_not_in_profile(session, user)
     books_in_profile = await view_paginated_books(session=session, book_name=book_name, page=page, user=user)
-    user_pic = await view_profile_picture(session=session, user=user)
+    user_info = await view_profile_info(user=user)
 
     return {'books_in_profile': books_in_profile['books'],
             'page': books_in_profile['page'],
             'books_not_in_profile': books_not_in_profile['books_not_in_profile'],
-            'profile_image': user_pic,
+            'user': user_info,
             'library': books_not_in_profile['library']}
 
 

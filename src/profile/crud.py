@@ -5,15 +5,6 @@ from src.auth.models import User
 from src.library.models import Library, Book
 
 
-async def read_users_profile_image(session: AsyncSession, user: User) -> User:
-    stmt = await session.scalar(
-        select(User.profile_image)
-        .where(
-            User.id == str(user.id))
-    )
-    return stmt
-
-
 async def read_all_library_columns_by_current_user(session: AsyncSession, user: User):
     query = (select(
         Library.book_id,

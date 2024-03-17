@@ -34,5 +34,5 @@ async def test_search_specific_book_from_database(test_client: AsyncClient, over
 
 async def test_admin_panel(override_get_async_session: AsyncSession):
     await admin_panel_api(session=override_get_async_session)
-    is_admin_panel_data_in_redis = await RedisCache("admin_panel").check()
+    is_admin_panel_data_in_redis = await RedisCache("admin_panel").exist()
     assert is_admin_panel_data_in_redis

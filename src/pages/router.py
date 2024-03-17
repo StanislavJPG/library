@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Request, Query, Depends, HTTPException
+from fastapi import APIRouter, Request, Query, Depends, HTTPException, Security
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import Jinja2Templates
@@ -65,16 +65,20 @@ async def get_base_page(request: Request, user=Depends(current_optional_user),
 @router.get('/profile')
 async def get_profile_page(request: Request, session: AsyncSession = Depends(get_async_session),
                            book_name: Optional[str] = None,
-                           page: Optional[int] = 1, user=Depends(current_optional_user),
-                           admin=Depends(current_optional_superuser)):
-    all_books_info = await get_profile_api(session=session, book_name=book_name, page=page, user=user)
+                           page: Optional[int] = 1,
+                           user=Security(current_optional_user)):
+    full_profile_info = await get_profile_api(session=session, book_name=book_name, page=page, user=user)
 
     return templates.TemplateResponse(
         'my_profile.html',
-        {'request': request, 'books_in_profile': all_books_info['books_in_profile'], 'page': all_books_info['page'],
-         'books_not_in_profile': all_books_info['books_not_in_profile'], 'user': user,
-         'profile_image': all_books_info['profile_image'], 'library': all_books_info['library'],
-         'admin': admin}
+        {
+         'request': request,
+         'books_in_profile': full_profile_info['books_in_profile'],
+         'page': full_profile_info['page'],
+         'books_not_in_profile': full_profile_info['books_not_in_profile'],
+         'library': full_profile_info['library'],
+         'user': full_profile_info['user']
+        }
     )
 
 
